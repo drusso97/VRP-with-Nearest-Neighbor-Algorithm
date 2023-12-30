@@ -13,7 +13,7 @@ import csv
 packages = []
 
 
-# Creating package class
+# Create package class
 class Package:
     def __init__(self, package_id, address, city, state, zip_code, deadline, weight, special_notes=""):
         self.package_id = package_id
@@ -24,6 +24,13 @@ class Package:
         self.deadline = deadline
         self.weight = weight
         self.special_notes = special_notes
+
+
+# Create truck class
+class Truck:
+    def __int__(self, num_packages=0, speed=18):
+        self.num_packages = num_packages
+        self.speed = speed
 
 
 # Define function to parse csv file and create package objects
@@ -39,12 +46,15 @@ def create_package_objects():
             deadline = row[5]
             weight = row[6]
             special_notes = row[7]
-            package = Package(package_id, address, city, state, zip_code, deadline, weight, special_notes)
-            packages.append(package)
+            new_package = Package(package_id, address, city, state, zip_code, deadline, weight, special_notes)
+            packages.append(new_package)
 
+
+# TODO: Define function to parse distance files
 
 create_package_objects()
 
+# TODO: Delete before submitting. Check that package objects are created properly.
 for package in packages:
     print(package.package_id, package.address, package.city, package.zip_code, package.deadline, package.weight,
           package.special_notes)
