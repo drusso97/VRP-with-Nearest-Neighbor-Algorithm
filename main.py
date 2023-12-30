@@ -12,7 +12,7 @@ import csv
 
 # Create package class
 class Package:
-    def __init__(self, package_id, address, city, state, zip_code, deadline, weight, special_notes=""):
+    def __init__(self, package_id, address, city, state, zip_code, deadline, weight, special_notes="", delivered=False):
         self.package_id = package_id
         self.address = address
         self.city = city
@@ -21,6 +21,7 @@ class Package:
         self.deadline = deadline
         self.weight = weight
         self.special_notes = special_notes
+        self.delivered = delivered
 
 
 # Create hash table to store package data
@@ -48,10 +49,18 @@ package_table = PackageHashTable()
 
 # Create truck class
 class Truck:
-    def __int__(self, num_packages=0, speed=18):
+    def __int__(self, num_packages=0, speed=18.0, miles_driven=0.0):
         self.num_packages = num_packages
         self.speed = speed
+        self.miles_driven = miles_driven
 
+
+# WGUPS has three trucks available
+truck1 = Truck()
+truck2 = Truck()
+truck3 = Truck()
+
+trucks = [truck1, truck2, truck3]
 
 # Define function to parse csv file and create package objects
 def create_package_objects():
@@ -70,10 +79,27 @@ def create_package_objects():
             package_table.add_package(package_id, new_package)
 
 
-# TODO: Define function to parse distance files
-
+# Fill the package hash table
 create_package_objects()
 
+# TODO: Define function to parse distance files
+
+
 # TODO: Delete before submitting. Check that package objects are created properly.
-test = package_table.get_package(1)
+test = package_table.get_package(5)
 print(test.address)
+
+
+# Function to check delivery status
+def check_delivered_status(package_id):
+    checked_package = package_table.get_package(package_id)
+    if checked_package.delivered:
+        # TODO: Update to show delivered time.
+        print("Package", package_id, "has been delivered")
+    else:
+        # TODO: Update to show ETA
+        print("Package", package_id, "is currently in transit")
+
+
+checker = int(input("Enter a package ID to check it's status: "))
+check_delivered_status(checker)
