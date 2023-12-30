@@ -9,9 +9,6 @@
 
 import csv
 
-# Initialize empty list to store package objects
-packages = []
-
 
 # Create package class
 class Package:
@@ -26,6 +23,29 @@ class Package:
         self.special_notes = special_notes
 
 
+# Create hash table to store package data
+class PackageHashTable:
+    def __init__(self):
+        self.hash_table = {}
+
+    def add_package(self, package_id, package):
+        self.hash_table[package_id] = package
+
+    def get_package(self, package_id):
+        return self.hash_table.get(package_id)
+
+    def remove_package(self, package_id):
+        if package_id in self.hash_table:
+            del self.hash_table[package_id]
+            print("Package", package_id, "was deleted")
+        else:
+            print("Package", package_id, "is not in the table")
+
+
+# Initialize package hash table
+package_table = PackageHashTable()
+
+
 # Create truck class
 class Truck:
     def __int__(self, num_packages=0, speed=18):
@@ -35,10 +55,10 @@ class Truck:
 
 # Define function to parse csv file and create package objects
 def create_package_objects():
-    with open("files/WGUPS_package_file.csv", "r") as package_file:
+    with open("files/WGUPS_package_file.csv", "r", encoding='utf-8-sig') as package_file:
         reader_variable = csv.reader(package_file, delimiter=",")
         for row in reader_variable:
-            package_id = row[0]
+            package_id = int(row[0])
             address = row[1]
             city = row[2]
             state = row[3]
@@ -47,7 +67,7 @@ def create_package_objects():
             weight = row[6]
             special_notes = row[7]
             new_package = Package(package_id, address, city, state, zip_code, deadline, weight, special_notes)
-            packages.append(new_package)
+            package_table.add_package(package_id, new_package)
 
 
 # TODO: Define function to parse distance files
@@ -55,6 +75,5 @@ def create_package_objects():
 create_package_objects()
 
 # TODO: Delete before submitting. Check that package objects are created properly.
-for package in packages:
-    print(package.package_id, package.address, package.city, package.zip_code, package.deadline, package.weight,
-          package.special_notes)
+test = package_table.get_package(1)
+print(test.address)
