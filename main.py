@@ -69,7 +69,6 @@ trucks = [truck1, truck2, truck3]
 
 
 # Define function to parse csv file and create package objects
-# TODO: Weight does not matter. Can remove. Also could combine address and zip code into one "location" field
 def create_package_objects():
     with open("files/WGUPS_package_file.csv", "r", encoding='utf-8-sig') as package_file:
         reader_variable = csv.reader(package_file, delimiter=",")
