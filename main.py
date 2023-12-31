@@ -1,23 +1,26 @@
-# Devon Russo
-
+# Devon Russo, WGU - Computer Science, Student ID: 010828078
 # C950 PA Task 2
 # Created on 12/30/2023
 
 # This program uses the nearest neighbor algorithm to design an efficient route to deliver packages.
-
 # The packages will be stored in a hash table with their ID being used as the key.
+# The package class stores all relevant information about each package.
 
 import csv
 
 
-# Create package class. Weight does not matter. We can ignore it.
+# Create package class.
 class Package:
-    def __init__(self, package_id, address, deadline, special_notes="", delivered=False):
+    def __init__(self, package_id, address, city, zip_code, deadline, weight, special_notes="",
+                 delivery_status="at the hub"):
         self.package_id = package_id
         self.address = address
+        self.city = city
+        self.zip_code = zip_code
         self.deadline = deadline
+        self.weight = weight
         self.special_notes = special_notes
-        self.delivered = delivered
+        self.delivery_status = delivery_status
 
 
 # Create hash table to store package data
@@ -68,18 +71,20 @@ truck3 = Truck()
 trucks = [truck1, truck2, truck3]
 
 
-# Define function to parse csv file and create package objects
+# Define function to parse csv file and create package objects.
+# The address is stored in the same format as the location objects.
 def create_package_objects():
     with open("files/WGUPS_package_file.csv", "r", encoding='utf-8-sig') as package_file:
         reader_variable = csv.reader(package_file, delimiter=",")
         for row in reader_variable:
             package_id = int(row[0])
             address = row[1]
+            city = row[2]
             zip_code = row[4]
             deadline = row[5]
+            weight = row[6]
             special_notes = row[7]
-            address_zip = address + ', ' + zip_code
-            new_package = Package(package_id, address_zip, deadline, special_notes)
+            new_package = Package(package_id, address, city, zip_code, deadline, weight, special_notes)
             package_table.add_package(package_id, new_package)
 
 
@@ -87,9 +92,8 @@ def create_package_objects():
 create_package_objects()
 
 
-# TODO: Define function to parse distance files
-# IDEA: First parse a list of all the different locations and create a location class
-def create_distance_objects():
+# Define function to parse distance file and create location objects.
+def create_location_objects():
     with open("files/distance_table.csv", "r", encoding='utf-8-sig') as distance_file:
         reader_variable = csv.reader(distance_file, delimiter=",")
 
@@ -101,24 +105,89 @@ def create_distance_objects():
             locations.append(new_location)
 
 
-create_distance_objects()
-for location in locations:
-    print(location.address)
+def nearest_neighbor_algorithm(trucks, packages, distances):
+    # Initialize empty route for each truck
+    routes = {truck: [] for truck in trucks}
 
-# TODO: Delete before submitting. Check that package objects are created properly.
-test = package_table.get_package(5)
-print("Address: ", test.address)
+    # Define function to calculate the distance between two locations
+    def distance_between(location1, location2):
+        return distances[location1][location2]
+
+    # Define function to get the nearest package for a given location
+    def get_nearest_package(current_location, remaining_packages):
+        return min(remaining_packages, key=lambda package: distance_between(current_location, package.address))
+
+    # Start at the hub
+    for truck in trucks:
+        current_location = 'Hub'
+
+        # While there are still packages remaining
+        while packages:
+            nearest_package = get_nearest_package(current_location, packages)
+
+            # Load the package
+            routes[truck].append(nearest_package)
+            package_table.get_package(nearest_package.package_id).delivery_status = "in transit"
+
+            # Mark the package as loaded
+            packages.remove_package(nearest_package)
+
+            # Update the current location
+            current_location = nearest_package['address']
+
+    return routes
 
 
-# Function to check delivery status
-def check_delivered_status(package_id):
-    checked_package = package_table.get_package(package_id)
-    if checked_package.delivered:
-        # TODO: Update to show delivered time.
-        print("Package", package_id, "has been delivered")
+# Define unction to lookup package by ID
+def lookup_package(package_id):
+    package_to_lookup = package_table.get_package(package_id)
+
+    print("Delivery address: " + package_to_lookup.address, package_to_lookup.city + ", " + package_to_lookup.zip_code)
+    print("Delivery deadline: " + package_to_lookup.deadline)
+    print("Package weight: " + package_to_lookup.weight + "KG")
+    print("Package", package_id, "is", package_to_lookup.delivery_status)
+    print()
+
+
+def time_function():
+    # Enter a time. Format must be "00:00 AM/PM"
+    user_time = input("Enter current time (Format 12:00 AM/PM): ")
+    print("Status report for", user_time, )
+    print('...\n' * 3)
+    print("This feature has not been added yet\n")
+
+    # Print status of all packages at that time.
+
+    return
+
+
+def get_user_input():
+    print("Please choose from the following options:")
+    print("(1) - Lookup package by ID")
+    print("(2) - Print status of all of today's packages by time - Does not work yet")
+    print("(3) - Enter a different time - Does not work yet")
+    print("(4) - Quit the program\n")
+
+    user_input = int(input("Enter your selection: "))
+
+    if user_input == 1:
+        id_input = int(input("Enter package ID: "))
+        lookup_package(id_input)
+        get_user_input()
+    elif user_input == 2:
+        print("This feature has not yet been added\n")
+        time_function()
+        get_user_input()
+    elif user_input == 3:
+        print("This feature has not yet been added\n")
+        get_user_input()
+    elif user_input == 4:
+        print("Quitting program...")
+        exit()
     else:
-        # TODO: Update to show ETA
-        print("Package", package_id, "is currently in transit")
+        get_user_input()
 
-# checker = int(input("Enter a package ID to check it's status: "))
-# check_delivered_status(checker)
+
+print(nearest_neighbor_algorithm(trucks, package_table.hash_table, locations))
+
+get_user_input()
