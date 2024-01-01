@@ -44,8 +44,9 @@ class PackageHashTable:
 
 # Create truck class
 class Truck:
-    def __int__(self, num_packages=0, speed=18.0, miles_driven=0.0):
-        self.num_packages = num_packages
+    def __init__(self, max_capacity=16, speed=18.0, miles_driven=0.0):
+        self.max_capacity = max_capacity
+        self.num_packages = 0
         self.speed = speed
         self.miles_driven = miles_driven
 
@@ -94,15 +95,21 @@ create_package_objects()
 
 # Define function to parse distance file and create location objects.
 def create_location_objects():
+    distances = {}
+
     with open("files/distance_table.csv", "r", encoding='utf-8-sig') as distance_file:
         reader_variable = csv.reader(distance_file, delimiter=",")
 
         for row in reader_variable:
-            address = row[1]
-            distances = row[slice(2, 29)]
-            distances = [float(i) for i in distances if i != '']
-            new_location = Location(address, distances)
+            address = row[1].strip()
+            distances[address] = {locations[i].address: float(row[i + 2]) for i in range(len(locations))}
+            new_location = Location(address, distances[address])
             locations.append(new_location)
+
+    if 'Hub' not in distances:
+        distances['Hub'] = {location.address: 0.0 for location in locations}
+
+    return distances
 
 
 def nearest_neighbor_algorithm(trucks, packages, distances):
@@ -111,29 +118,49 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
 
     # Define function to calculate the distance between two locations
     def distance_between(location1, location2):
-        return distances[location1][location2]
+        location1 = location1.strip()
+        location2 = location2.strip()
+
+        if location1 in distances and location2 in distances[location1]:
+            return distances[location1][location2]
+        else:
+            return float('inf')  # or any other appropriate value for missing distances
 
     # Define function to get the nearest package for a given location
-    def get_nearest_package(current_location, remaining_packages):
-        return min(remaining_packages, key=lambda package: distance_between(current_location, package.address))
+    def get_nearest_package(current_location, remaining_packages, truck):
+        # Sort packages by distance and filter out packages that exceed truck capacity
+        valid_packages = [pkg for pkg in remaining_packages if truck.num_packages + 1 <= truck.max_capacity]
+
+        if not valid_packages:
+            return None  # No valid packages available
+
+        return min(valid_packages, key=lambda pkg: distance_between(current_location, pkg.address))
 
     # Start at the hub
     for truck in trucks:
         current_location = 'Hub'
 
         # While there are still packages remaining
-        while packages:
-            nearest_package = get_nearest_package(current_location, packages)
+        while packages.values():
+            nearest_package = get_nearest_package(current_location, packages.values(), truck)
 
-            # Load the package
-            routes[truck].append(nearest_package)
-            package_table.get_package(nearest_package.package_id).delivery_status = "in transit"
+            if nearest_package is not None:
+                # Load the package
+                routes[truck].append(nearest_package)
+                package_table.get_package(nearest_package.package_id).delivery_status = "in transit"
+                truck.num_packages += 1
 
-            # Mark the package as loaded
-            packages.remove_package(nearest_package)
+                # Mark the package as loaded
+                package_table.remove_package(nearest_package.package_id)
 
-            # Update the current location
-            current_location = nearest_package['address']
+                # Update the current location
+                current_location = nearest_package.address
+
+            else:
+                # If no valid package is available, return to the hub to load more packages
+                routes[truck].append('Hub')  # Indicates a return to the hub
+                truck.num_packages = 0
+                current_location = 'Hub'
 
     return routes
 
@@ -161,11 +188,19 @@ def time_function():
     return
 
 
+def set_departure_time():
+    for truck in trucks:
+        departure_time = input(f"Enter departure time for Truck {trucks.index(truck) + 1} (Format 12:00 AM/PM): ")
+        # Set the departure time for the truck
+        # You may want to store this information in the Truck class
+        print(f"Truck {trucks.index(truck) + 1} will depart at {departure_time}")
+
+
 def get_user_input():
     print("Please choose from the following options:")
     print("(1) - Lookup package by ID")
     print("(2) - Print status of all of today's packages by time - Does not work yet")
-    print("(3) - Enter a different time - Does not work yet")
+    print("(3) - Enter departure time for trucks")
     print("(4) - Quit the program\n")
 
     user_input = int(input("Enter your selection: "))
@@ -179,7 +214,7 @@ def get_user_input():
         time_function()
         get_user_input()
     elif user_input == 3:
-        print("This feature has not yet been added\n")
+        set_departure_time()
         get_user_input()
     elif user_input == 4:
         print("Quitting program...")
@@ -188,6 +223,7 @@ def get_user_input():
         get_user_input()
 
 
-print(nearest_neighbor_algorithm(trucks, package_table.hash_table, locations))
+distances = create_location_objects()
+print(nearest_neighbor_algorithm(trucks, package_table.hash_table, distances))
 
 get_user_input()
