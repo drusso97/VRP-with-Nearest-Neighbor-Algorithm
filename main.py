@@ -8,6 +8,8 @@
 
 import csv
 
+current_time = "8:00 AM"
+
 
 # Create package class.
 class Package:
@@ -116,6 +118,8 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
     # Initialize empty route for each truck
     routes = {truck: [] for truck in trucks}
 
+    delivered_packages = 0
+
     # Define function to calculate the distance between two locations
     def distance_between(location1, location2):
         location1 = location1.strip()
@@ -141,7 +145,7 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
         current_location = 'Hub'
 
         # While there are still packages remaining
-        while packages.values():
+        while delivered_packages < len(packages):
             nearest_package = get_nearest_package(current_location, packages.values(), truck)
 
             if nearest_package is not None:
@@ -156,11 +160,17 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
                 # Update the current location
                 current_location = nearest_package.address
 
+                if nearest_package.package_id == 9 and current_time >= "10:20 AM":
+                    nearest_package.address = "410 S State St"
+
             else:
                 # If no valid package is available, return to the hub to load more packages
                 routes[truck].append('Hub')  # Indicates a return to the hub
                 truck.num_packages = 0
                 current_location = 'Hub'
+
+                # Increment the number of delivered packages for this truck
+                delivered_packages += len(routes[truck])
 
     return routes
 
