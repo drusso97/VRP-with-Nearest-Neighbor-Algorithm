@@ -25,6 +25,28 @@ class Package:
         self.delivery_status = delivery_status
 
 
+class PackageHashTable:
+    def __init__(self):
+        self.packages_by_state = {
+            "at_hub": {},
+            "in_transit": {},
+            "delivered": {}
+        }
+
+    def add_package(self, package_id, package, state="at_hub"):
+        self.packages_by_state[state][package_id] = package
+
+    def get_package(self, package_id, state="at_hub"):
+        return self.packages_by_state[state].get(package_id)
+
+    def remove_package(self, package_id, state="at_hub"):
+        if package_id in self.packages_by_state[state]:
+            del self.packages_by_state[state][package_id]
+            print("Package", package_id, "was deleted from", state)
+        else:
+            print("Package", package_id, "is not in the", state, "table")
+
+
 # Create hash table to store packages at the Hub
 class HubHashTable:
     def __init__(self):
@@ -105,9 +127,15 @@ class Location:
 locations = []
 
 # Initialize package hash tables
-package_table = HubHashTable()
+hub_table = HubHashTable()
 transit_table = TransitHashTable()
 delivered_table = DeliveredHashTable()
+
+package_table = PackageHashTable()
+transit_table = PackageHashTable()
+delivered_table = PackageHashTable()
+
+
 
 # WGUPS has three trucks available
 truck1 = Truck()
@@ -119,7 +147,7 @@ trucks = [truck1, truck2, truck3]
 
 # Define function to parse csv file and create package objects.
 # The address is stored in the same format as the location objects.
-def create_package_objects():
+def get_package_data():
     with open("files/WGUPS_package_file.csv", "r", encoding='utf-8-sig') as package_file:
         reader_variable = csv.reader(package_file, delimiter=",")
         for row in reader_variable:
@@ -131,15 +159,15 @@ def create_package_objects():
             weight = row[6]
             special_notes = row[7]
             new_package = Package(package_id, address, city, zip_code, deadline, weight, special_notes)
-            package_table.add_package(package_id, new_package)
+            hub_table.add_package(package_id, new_package)
 
 
 # Fill the package hash table
-create_package_objects()
+get_package_data()
 
 
 # Define function to parse distance file and create location objects.
-def create_location_objects():
+def get_location_data():
     distances = {}
 
     with open("files/distance_table.csv", "r", encoding='utf-8-sig') as distance_file:
@@ -196,14 +224,15 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
             if nearest_package is not None:
                 # Load the package
                 routes[truck].append(nearest_package)
-                package_table.get_package(nearest_package.package_id).delivery_status = "in transit"
+                hub_table.get_package(nearest_package.package_id).delivery_status = "in transit"
                 truck.num_packages += 1
 
                 # Mark the package as loaded
                 # TODO: add package to packages_in_transit list
                 # TODO: Record their delivery time, truck they are on, and ETA
-                package_table.get_package(nearest_package.package_id)
-                package_table.remove_package(nearest_package.package_id)
+                hub_table.get_package(nearest_package.package_id)
+                transit_table.add_package(nearest_package.package_id, nearest_package)
+                hub_table.remove_package(nearest_package.package_id)
 
                 # Update the current location
                 current_location = nearest_package.address
@@ -225,17 +254,25 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
 
 # Define function to lookup package by ID
 def lookup_package(package_id):
-    package_to_lookup = package_table.get_package(package_id)
 
-    if package_table.get_package(package_id) is not None:
-        print("Delivery address: " + package_to_lookup.address,
+    package_to_lookup = None
+
+    if hub_table.get_package(package_id) is not None:
+        package_to_lookup = hub_table.get_package(package_id)
+    elif transit_table.get_package(package_id) is not None:
+        package_to_lookup = transit_table.get_package(package_id)
+    elif delivered_table.get_package(package_id) is not None:
+        package_to_lookup = delivered_table.get_package(package_id)
+
+    if package_to_lookup is not None:
+        print("Delivery address:", package_to_lookup.address,
               package_to_lookup.city + ", " + package_to_lookup.zip_code)
-        print("Delivery deadline: " + package_to_lookup.deadline)
-        print("Package weight: " + package_to_lookup.weight + "KG")
+        print("Delivery deadline:", package_to_lookup.deadline)
+        print("Package weight:", package_to_lookup.weight + "KG")
         print("Package", package_id, "is", package_to_lookup.delivery_status)
         print()
     else:
-        print("The package does not exist")
+        print("Package not found. Please try another package ID")
 
 
 def time_function():
@@ -285,7 +322,7 @@ def get_user_input():
         get_user_input()
 
 
-distances = create_location_objects()
-print(nearest_neighbor_algorithm(trucks, package_table.packages_at_hub, distances))
+distances = get_location_data()
+print(nearest_neighbor_algorithm(trucks, hub_table.packages_at_hub, distances))
 
 get_user_input()
