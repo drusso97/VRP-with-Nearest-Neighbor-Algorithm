@@ -46,6 +46,9 @@ class PackageHashTable:
         else:
             print("Package", package_id, "is not in the", state, "table")
 
+    def get_packages_in_state(self, state="at_hub"):
+        return self.packages_by_state[state]
+
 
 # Create hash table to store packages at the Hub
 class HubHashTable:
@@ -132,9 +135,10 @@ transit_table = TransitHashTable()
 delivered_table = DeliveredHashTable()
 
 package_table = PackageHashTable()
-transit_table = PackageHashTable()
-delivered_table = PackageHashTable()
 
+packages_at_hub = package_table.get_packages_in_state("at_hub")
+packages_in_transit = package_table.get_packages_in_state("in_transit")
+delivered_packages = package_table.get_packages_in_state("delivered")
 
 
 # WGUPS has three trucks available
@@ -159,7 +163,7 @@ def get_package_data():
             weight = row[6]
             special_notes = row[7]
             new_package = Package(package_id, address, city, zip_code, deadline, weight, special_notes)
-            hub_table.add_package(package_id, new_package)
+            package_table.add_package(package_id, new_package, state="at_hub")
 
 
 # Fill the package hash table
@@ -218,21 +222,24 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
         current_location = 'Hub'
 
         # While there are still packages remaining
-        while delivered_packages < len(packages):
-            nearest_package = get_nearest_package(current_location, packages.values(), truck)
+        while delivered_packages < len(package_table.get_packages_in_state("at_hub")):
+            nearest_package = get_nearest_package(
+                current_location,
+                package_table.get_packages_in_state("at_hub").values(),
+                truck
+            )
 
             if nearest_package is not None:
                 # Load the package
                 routes[truck].append(nearest_package)
-                hub_table.get_package(nearest_package.package_id).delivery_status = "in transit"
+                package_table.get_package(nearest_package.package_id, state="at_hub").delivery_status = "in transit"
                 truck.num_packages += 1
 
                 # Mark the package as loaded
                 # TODO: add package to packages_in_transit list
                 # TODO: Record their delivery time, truck they are on, and ETA
-                hub_table.get_package(nearest_package.package_id)
-                transit_table.add_package(nearest_package.package_id, nearest_package)
-                hub_table.remove_package(nearest_package.package_id)
+                package_table.add_package(nearest_package.package_id, nearest_package, state="in_transit")
+                package_table.remove_package(nearest_package.package_id, state="at_hub")
 
                 # Update the current location
                 current_location = nearest_package.address
@@ -254,18 +261,17 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
 
 # Define function to lookup package by ID
 def lookup_package(package_id):
-
     package_to_lookup = None
 
-    if hub_table.get_package(package_id) is not None:
-        package_to_lookup = hub_table.get_package(package_id)
-    elif transit_table.get_package(package_id) is not None:
-        package_to_lookup = transit_table.get_package(package_id)
-    elif delivered_table.get_package(package_id) is not None:
-        package_to_lookup = delivered_table.get_package(package_id)
+    if package_table.get_package(package_id, state="at_hub") is not None:
+        package_to_lookup = package_table.get_package(package_id, state="at_hub")
+    elif package_table.get_package(package_id, state="in_transit") is not None:
+        package_to_lookup = package_table.get_package(package_id, state="in_transit")
+    elif package_table.get_package(package_id, state="delivered") is not None:
+        package_to_lookup = package_table.get_package(package_id, state="delivered")
 
     if package_to_lookup is not None:
-        print("Delivery address:", package_to_lookup.address,
+        print("\nDelivery address:", package_to_lookup.address,
               package_to_lookup.city + ", " + package_to_lookup.zip_code)
         print("Delivery deadline:", package_to_lookup.deadline)
         print("Package weight:", package_to_lookup.weight + "KG")
