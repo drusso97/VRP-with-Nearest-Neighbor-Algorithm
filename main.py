@@ -25,10 +25,10 @@ class Package:
         self.delivery_status = delivery_status
 
 
-# Create hash table to store package data
-class PackageHashTable:
+# Create hash table to store packages at the Hub
+class HubHashTable:
     def __init__(self):
-        self.hash_table = {}
+        self.packages_at_hub = {}
 
     # TODO: create three separate hash tables, one to store packages at the hub, one to store packages in transit,
     #  and one to store packages that are delivered.
@@ -37,17 +37,38 @@ class PackageHashTable:
     #  current hash table and inserts it into the correct one,
 
     def add_package(self, package_id, package):
-        self.hash_table[package_id] = package
+        self.packages_at_hub[package_id] = package
 
     def get_package(self, package_id):
-        return self.hash_table.get(package_id)
+        return self.packages_at_hub.get(package_id)
 
     def remove_package(self, package_id):
-        if package_id in self.hash_table:
-            del self.hash_table[package_id]
+        if package_id in self.packages_at_hub:
+            del self.packages_at_hub[package_id]
             print("Package", package_id, "was deleted")
         else:
             print("Package", package_id, "is not in the table")
+
+
+class TransitHashTable:
+    def __init__(self):
+        self.packages_in_transit = {}
+
+    def add_package(self, package_id, package):
+        self.packages_in_transit[package_id] = package
+
+    def get_package(self, package_id):
+        return self.packages_in_transit.get(package_id)
+
+    def remove_package(self, package_id):
+        if package_id in self.packages_in_transit:
+            del self.packages_in_transit[package_id]
+            print("Package", package_id, "was deleted")
+        else:
+            print("Package", package_id, "is not in the table")
+
+
+transit_table = TransitHashTable()
 
 
 # Create truck class
@@ -70,7 +91,7 @@ class Location:
 locations = []
 
 # Initialize package hash table
-package_table = PackageHashTable()
+package_table = HubHashTable()
 
 # WGUPS has three trucks available
 truck1 = Truck()
@@ -159,12 +180,12 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
             if nearest_package is not None:
                 # Load the package
                 routes[truck].append(nearest_package)
-                # TODO: create a list to keep track of packages that are still on truck
-                # Record their delivery time
                 package_table.get_package(nearest_package.package_id).delivery_status = "in transit"
                 truck.num_packages += 1
 
                 # Mark the package as loaded
+                # TODO: add package to packages_in_transit list
+                # TODO: Record their delivery time, truck they are on, and ETA
                 package_table.get_package(nearest_package.package_id)
                 package_table.remove_package(nearest_package.package_id)
 
@@ -190,11 +211,15 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
 def lookup_package(package_id):
     package_to_lookup = package_table.get_package(package_id)
 
-    print("Delivery address: " + package_to_lookup.address, package_to_lookup.city + ", " + package_to_lookup.zip_code)
-    print("Delivery deadline: " + package_to_lookup.deadline)
-    print("Package weight: " + package_to_lookup.weight + "KG")
-    print("Package", package_id, "is", package_to_lookup.delivery_status)
-    print()
+    if package_table.get_package(package_id) is not None:
+        print("Delivery address: " + package_to_lookup.address,
+              package_to_lookup.city + ", " + package_to_lookup.zip_code)
+        print("Delivery deadline: " + package_to_lookup.deadline)
+        print("Package weight: " + package_to_lookup.weight + "KG")
+        print("Package", package_id, "is", package_to_lookup.delivery_status)
+        print()
+    else:
+        print("The package does not exist")
 
 
 def time_function():
@@ -245,6 +270,6 @@ def get_user_input():
 
 
 distances = create_location_objects()
-print(nearest_neighbor_algorithm(trucks, package_table.hash_table, distances))
+print(nearest_neighbor_algorithm(trucks, package_table.packages_at_hub, distances))
 
 get_user_input()
