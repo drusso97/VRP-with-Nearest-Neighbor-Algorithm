@@ -30,6 +30,12 @@ class PackageHashTable:
     def __init__(self):
         self.hash_table = {}
 
+    # TODO: create three separate hash tables, one to store packages at the hub, one to store packages in transit,
+    #  and one to store packages that are delivered.
+    #  Record the time the package was loaded and the time the package was delivered.
+    #  The remove_package function could be replaced with a move_package function that deletes the package from its
+    #  current hash table and inserts it into the correct one,
+
     def add_package(self, package_id, package):
         self.hash_table[package_id] = package
 
@@ -120,6 +126,8 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
 
     delivered_packages = 0
 
+    # TODO: Find a way to track delivered packages and the time that they were delivered.
+
     # Define function to calculate the distance between two locations
     def distance_between(location1, location2):
         location1 = location1.strip()
@@ -151,10 +159,13 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
             if nearest_package is not None:
                 # Load the package
                 routes[truck].append(nearest_package)
+                # TODO: create a list to keep track of packages that are still on truck
+                # Record their delivery time
                 package_table.get_package(nearest_package.package_id).delivery_status = "in transit"
                 truck.num_packages += 1
 
                 # Mark the package as loaded
+                package_table.get_package(nearest_package.package_id)
                 package_table.remove_package(nearest_package.package_id)
 
                 # Update the current location
@@ -175,7 +186,7 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
     return routes
 
 
-# Define unction to lookup package by ID
+# Define function to lookup package by ID
 def lookup_package(package_id):
     package_to_lookup = package_table.get_package(package_id)
 
