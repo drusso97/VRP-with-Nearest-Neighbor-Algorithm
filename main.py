@@ -68,8 +68,22 @@ class TransitHashTable:
             print("Package", package_id, "is not in the table")
 
 
-transit_table = TransitHashTable()
+class DeliveredHashTable:
+    def __init__(self):
+        self.delivered_packages = {}
 
+    def add_package(self, package_id, package):
+        self.delivered_packages[package_id] = package
+
+    def get_package(self, package_id):
+        return self.delivered_packages.get(package_id)
+
+    def remove_package(self, package_id):
+        if package_id in self.delivered_packages:
+            del self.delivered_packages[package_id]
+            print("Package", package_id, "was deleted")
+        else:
+            print("Package", package_id, "is not in the table")
 
 # Create truck class
 class Truck:
@@ -90,8 +104,10 @@ class Location:
 
 locations = []
 
-# Initialize package hash table
+# Initialize package hash tables
 package_table = HubHashTable()
+transit_table = TransitHashTable()
+delivered_table = DeliveredHashTable()
 
 # WGUPS has three trucks available
 truck1 = Truck()
