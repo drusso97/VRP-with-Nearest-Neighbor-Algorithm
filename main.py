@@ -24,7 +24,7 @@ class Package:
         self.special_notes = special_notes
         self.delivery_status = delivery_status
 
-
+# Create hash table to store packages. Can store/access packages by delivery status as well.
 class PackageHashTable:
     def __init__(self):
         self.packages_by_state = {
@@ -50,66 +50,6 @@ class PackageHashTable:
         return self.packages_by_state[state]
 
 
-# Create hash table to store packages at the Hub
-class HubHashTable:
-    def __init__(self):
-        self.packages_at_hub = {}
-
-    # TODO: create three separate hash tables, one to store packages at the hub, one to store packages in transit,
-    #  and one to store packages that are delivered.
-    #  Record the time the package was loaded and the time the package was delivered.
-    #  The remove_package function could be replaced with a move_package function that deletes the package from its
-    #  current hash table and inserts it into the correct one,
-
-    def add_package(self, package_id, package):
-        self.packages_at_hub[package_id] = package
-
-    def get_package(self, package_id):
-        return self.packages_at_hub.get(package_id)
-
-    def remove_package(self, package_id):
-        if package_id in self.packages_at_hub:
-            del self.packages_at_hub[package_id]
-            print("Package", package_id, "was deleted")
-        else:
-            print("Package", package_id, "is not in the table")
-
-
-class TransitHashTable:
-    def __init__(self):
-        self.packages_in_transit = {}
-
-    def add_package(self, package_id, package):
-        self.packages_in_transit[package_id] = package
-
-    def get_package(self, package_id):
-        return self.packages_in_transit.get(package_id)
-
-    def remove_package(self, package_id):
-        if package_id in self.packages_in_transit:
-            del self.packages_in_transit[package_id]
-            print("Package", package_id, "was deleted")
-        else:
-            print("Package", package_id, "is not in the table")
-
-
-class DeliveredHashTable:
-    def __init__(self):
-        self.delivered_packages = {}
-
-    def add_package(self, package_id, package):
-        self.delivered_packages[package_id] = package
-
-    def get_package(self, package_id):
-        return self.delivered_packages.get(package_id)
-
-    def remove_package(self, package_id):
-        if package_id in self.delivered_packages:
-            del self.delivered_packages[package_id]
-            print("Package", package_id, "was deleted")
-        else:
-            print("Package", package_id, "is not in the table")
-
 # Create truck class
 class Truck:
     def __init__(self, max_capacity=16, speed=18.0, miles_driven=0.0):
@@ -128,11 +68,6 @@ class Location:
 
 
 locations = []
-
-# Initialize package hash tables
-hub_table = HubHashTable()
-transit_table = TransitHashTable()
-delivered_table = DeliveredHashTable()
 
 package_table = PackageHashTable()
 
@@ -278,7 +213,7 @@ def lookup_package(package_id):
         print("Package", package_id, "is", package_to_lookup.delivery_status)
         print()
     else:
-        print("Package not found. Please try another package ID")
+        print("\nPackage not found. Please try another package ID.")
 
 
 def time_function():
@@ -329,6 +264,6 @@ def get_user_input():
 
 
 distances = get_location_data()
-print(nearest_neighbor_algorithm(trucks, hub_table.packages_at_hub, distances))
+print(nearest_neighbor_algorithm(trucks, packages_at_hub, distances))
 
 get_user_input()
