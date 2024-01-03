@@ -24,6 +24,7 @@ class Package:
         self.special_notes = special_notes
         self.delivery_status = delivery_status
 
+
 # Create hash table to store packages. Can store/access packages by delivery status as well.
 class PackageHashTable:
     def __init__(self):
@@ -74,7 +75,6 @@ package_table = PackageHashTable()
 packages_at_hub = package_table.get_packages_in_state("at_hub")
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 delivered_packages = package_table.get_packages_in_state("delivered")
-
 
 # WGUPS has three trucks available
 truck1 = Truck()
@@ -157,7 +157,7 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
         current_location = 'Hub'
 
         # While there are still packages remaining
-        while delivered_packages < len(package_table.get_packages_in_state("at_hub")):
+        while package_table.get_packages_in_state("at_hub"):
             nearest_package = get_nearest_package(
                 current_location,
                 package_table.get_packages_in_state("at_hub").values(),
@@ -171,7 +171,6 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
                 truck.num_packages += 1
 
                 # Mark the package as loaded
-                # TODO: add package to packages_in_transit list
                 # TODO: Record their delivery time, truck they are on, and ETA
                 package_table.add_package(nearest_package.package_id, nearest_package, state="in_transit")
                 package_table.remove_package(nearest_package.package_id, state="at_hub")
@@ -181,6 +180,8 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
 
                 if nearest_package.package_id == 9 and current_time >= "10:20 AM":
                     nearest_package.address = "410 S State St"
+
+                delivered_packages += 1
 
             else:
                 # If no valid package is available, return to the hub to load more packages
