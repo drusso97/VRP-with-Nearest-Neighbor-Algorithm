@@ -110,7 +110,8 @@ def get_package_data():
             deadline = row[5]
 
             if deadline != 'EOD':
-                deadline = datetime.strptime(deadline, "%I:%M %p")
+                deadline = datetime.combine(datetime.today(), datetime.strptime(deadline, "%I:%M %p").time())
+
 
             weight = row[6]
             special_notes = row[7]
