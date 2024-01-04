@@ -28,6 +28,8 @@ class Package:
         self.weight = weight
         self.special_notes = special_notes
         self.delivery_status = delivery_status
+        self.eta = "EOD"
+        self.delivery_time = "tbd"
 
 
 # Create hash table to store packages. Can store/access packages by delivery status as well.
