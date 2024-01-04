@@ -7,8 +7,13 @@
 # The package class stores all relevant information about each package.
 
 import csv
+from datetime import datetime, time
 
-current_time = "8:00 AM"
+starting_time = datetime.combine(datetime.today(), time(8, 0))
+
+formatted_starting_time = starting_time.strftime("%I:%M %p")
+
+print("Starting time:", formatted_starting_time)
 
 
 # Create package class.
@@ -95,6 +100,10 @@ def get_package_data():
             city = row[2]
             zip_code = row[4]
             deadline = row[5]
+
+            if deadline != 'EOD':
+                deadline = datetime.strptime(deadline, "%I:%M %p")
+
             weight = row[6]
             special_notes = row[7]
             new_package = Package(package_id, address, city, zip_code, deadline, weight, special_notes)
@@ -178,7 +187,7 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
                 # Update the current location
                 current_location = nearest_package.address
 
-                if nearest_package.package_id == 9 and current_time >= "10:20 AM":
+                if nearest_package.package_id == 9 and starting_time >= datetime.combine(datetime.today(), time(10, 20)):
                     nearest_package.address = "410 S State St"
 
                 delivered_packages += 1
@@ -246,17 +255,21 @@ def get_user_input():
 
     user_input = int(input("Enter your selection: "))
 
+    # Returns the current status of the package if the package exists.
     if user_input == 1:
         id_input = int(input("Enter package ID: "))
         lookup_package(id_input)
         get_user_input()
+    # TODO: This will eventually return the status of all packages at any given user selected time
     elif user_input == 2:
         print("This feature has not yet been added\n")
         time_function()
         get_user_input()
+    # TODO: Not sure if this will end up getting used. Will change the departure time of the trucks.
     elif user_input == 3:
         set_departure_time()
         get_user_input()
+    # Quits the program
     elif user_input == 4:
         print("Quitting program...")
         exit()
