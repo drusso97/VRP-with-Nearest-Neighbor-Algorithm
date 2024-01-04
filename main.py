@@ -31,6 +31,9 @@ class Package:
         self.eta = "EOD"
         self.delivery_time = "tbd"
 
+    def __str__(self):
+        return f"Package: {self.package_id}, Address: {self.address} {self.city},{self.zip_code}, deadline: {self.deadline}, weight={self.weight}, delivery_status={self.delivery_status})"
+
 
 # Create hash table to store packages. Can store/access packages by delivery status as well.
 class PackageHashTable:
@@ -50,7 +53,7 @@ class PackageHashTable:
     def remove_package(self, package_id, state="at_hub"):
         if package_id in self.packages_by_state[state]:
             del self.packages_by_state[state][package_id]
-            print("Package", package_id, "was deleted from", state)
+            # print("Package", package_id, "was deleted from", state)
         else:
             print("Package", package_id, "is not in the", state, "table")
 
@@ -65,6 +68,9 @@ class Truck:
         self.num_packages = 0
         self.speed = speed
         self.miles_driven = miles_driven
+
+    def __str__(self):
+        return f"Truck(max_capacity={self.max_capacity}, num_packages={self.num_packages}, speed={self.speed}, miles_driven={self.miles_driven})"
 
 
 # Create location class
@@ -177,7 +183,7 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
 
             if nearest_package is not None:
                 # Load the package
-                routes[truck].append(nearest_package)
+                routes[truck].append(str(nearest_package))
                 package_table.get_package(nearest_package.package_id, state="at_hub").delivery_status = "in transit"
                 truck.num_packages += 1
 
@@ -189,7 +195,8 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
                 # Update the current location
                 current_location = nearest_package.address
 
-                if nearest_package.package_id == 9 and starting_time >= datetime.combine(datetime.today(), time(10, 20)):
+                if nearest_package.package_id == 9 and starting_time >= datetime.combine(datetime.today(),
+                                                                                         time(10, 20)):
                     nearest_package.address = "410 S State St"
 
                 delivered_packages += 1
