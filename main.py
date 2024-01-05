@@ -137,14 +137,33 @@ def get_location_data():
     with open("files/distance_table.csv", "r", encoding='utf-8-sig') as distance_file:
         reader_variable = csv.reader(distance_file, delimiter=",")
 
-        for row in reader_variable:
-            address = row[1].strip()
-            distances[address] = {locations[i].address: float(row[i + 2]) for i in range(len(locations))}
-            new_location = Location(address, distances[address])
-            locations.append(new_location)
+        header = next(reader_variable)  # Skip the header row
+        locations = [location.strip() for location in header[2:]]  # Remove extra spaces
 
-    if 'Hub' not in distances:
-        distances['Hub'] = {location.address: 0.0 for location in locations}
+        for row in reader_variable:
+            current_location = row[1].strip()
+            distances[current_location] = {}
+
+            # Ensure the number of distances matches the number of locations
+            if len(row) != len(locations) + 2:
+                print("Warning: Incorrect number of distances provided in the row.")
+                continue
+
+            for i, distance_str in enumerate(row[2:]):
+                destination_location = locations[i]
+                try:
+                    distance = float(distance_str)
+                    distances[current_location][destination_location] = distance
+                except ValueError:
+                    distances[current_location][destination_location] = float('inf')
+
+        # Set distances from each location to itself as 0
+        distances[current_location][current_location] = 0.0
+
+    print("Locations:", locations)
+    print("Distances:")
+    for location, dist_dict in distances.items():
+        print(f"{location}: {dist_dict}")
 
     return distances
 
@@ -162,9 +181,13 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
         location1 = location1.strip()
         location2 = location2.strip()
 
+        # Access distances using the locations as keys
         if location1 in distances and location2 in distances[location1]:
             return distances[location1][location2]
+        elif location2 in distances and location1 in distances[location2]:
+            return distances[location2][location1]
         else:
+            print(f"Distance between {location1} and {location2} not available.")
             return float('inf')  # or any other appropriate value for missing distances
 
     # Define function to get the nearest package for a given location
@@ -306,4 +329,7 @@ print(nearest_neighbor_algorithm(trucks, packages_at_hub, distances))
 
 print("Miles driven for truck 1:", truck1.miles_driven)
 
-get_user_input()
+# get_user_input()
+
+for location in locations:
+    print(location.distances)
