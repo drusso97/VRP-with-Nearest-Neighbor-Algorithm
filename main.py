@@ -138,24 +138,36 @@ def get_location_data():
         reader_variable = csv.reader(distance_file, delimiter=",")
 
         header = next(reader_variable)  # Skip the header row
-        locations = [location.strip() for location in header[2:]]  # Remove extra spaces
+        local_locations = [location.strip() for location in header[2:]]  # Remove extra spaces
 
         for row in reader_variable:
             current_location = row[1].strip()
             distances[current_location] = {}
 
             # Ensure the number of distances matches the number of locations
-            if len(row) != len(locations) + 2:
+            if len(row) != len(local_locations) + 2:
                 print("Warning: Incorrect number of distances provided in the row.")
                 continue
 
             for i, distance_str in enumerate(row[2:]):
-                destination_location = locations[i]
+                destination_location = local_locations[i]
                 try:
-                    distance = float(distance_str)
+                    if distance_str:
+                        distance = float(distance_str)
+                    else:
+                        distance = float('inf')
                     distances[current_location][destination_location] = distance
+
+                    # Check if 'HUB' key is present before setting the reverse distance
+                    # if 'HUB' in distances:
+                    #     distances[destination_location][current_location] = distance
+
                 except ValueError:
                     distances[current_location][destination_location] = float('inf')
+
+                    # Check if 'HUB' key is present before setting the reverse distance
+                    # if 'HUB' in distances:
+                    #     distances[destination_location][current_location] = float('inf')
 
         # Set distances from each location to itself as 0
         distances[current_location][current_location] = 0.0
@@ -165,7 +177,7 @@ def get_location_data():
     for location, dist_dict in distances.items():
         print(f"{location}: {dist_dict}")
 
-    return distances
+    return distances, local_locations
 
 
 def nearest_neighbor_algorithm(trucks, packages, distances):
@@ -205,7 +217,7 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
     # TODO: Track miles and ensure that the miles traveled do not exceed 140 miles between the two trucks.
     # There is no good reason to use the third truck since there are only two drivers.
     for truck in trucks[:2]:
-        current_location = 'Hub'
+        current_location = 'HUB'
 
         # While there are still packages remaining
         while package_table.get_packages_in_state("at_hub"):
@@ -238,9 +250,9 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
 
             else:
                 # If no valid package is available, return to the hub to load more packages
-                routes[truck].append('Hub')  # Indicates a return to the hub
+                routes[truck].append('HUB')  # Indicates a return to the hub
                 truck.num_packages = 0
-                current_location = 'Hub'
+                current_location = 'HUB'
 
                 # Increment the number of delivered packages for this truck
                 delivered_packages += len(routes[truck])
@@ -324,12 +336,18 @@ def get_user_input():
         get_user_input()
 
 
-distances = get_location_data()
+result = get_location_data()
+distances = result[0]  # Extract the distances dictionary
+extracted_locations = result[1]  # Extract the locations list
+
 print(nearest_neighbor_algorithm(trucks, packages_at_hub, distances))
 
 print("Miles driven for truck 1:", truck1.miles_driven)
 
 # get_user_input()
 
-for location in locations:
-    print(location.distances)
+# for location in locations:
+#     print(location.distances)
+
+# The below code now seems to work but I am still having trouble with the nearest neighbor algorithm getting distances
+print(distances['1060 Dalton Ave S\n(84104)']['HUB'])  # Now this should work without a TypeError
