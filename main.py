@@ -150,7 +150,7 @@ def get_location_data():
                 continue
 
             for i, distance_str in enumerate(row[2:]):
-                destination_location = local_locations[i]
+                destination_location = local_locations[i].strip()
                 try:
                     if distance_str:
                         distance = float(distance_str)
@@ -172,7 +172,7 @@ def get_location_data():
         # Set distances from each location to itself as 0
         distances[current_location][current_location] = 0.0
 
-    print("Locations:", locations)
+    print("Locations:", local_locations)
     print("Distances:")
     for location, dist_dict in distances.items():
         print(f"{location}: {dist_dict}")
@@ -192,6 +192,8 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
     def distance_between(location1, location2):
         location1 = location1.strip()
         location2 = location2.strip()
+
+        print(f"Debug: Checking distance between {location1} and {location2}")
 
         # Access distances using the locations as keys
         if location1 in distances and location2 in distances[location1]:
@@ -337,17 +339,17 @@ def get_user_input():
 
 
 result = get_location_data()
-distances = result[0]  # Extract the distances dictionary
+extracted_distances = result[0]  # Extract the distances dictionary
 extracted_locations = result[1]  # Extract the locations list
 
-print(nearest_neighbor_algorithm(trucks, packages_at_hub, distances))
+print(nearest_neighbor_algorithm(trucks, packages_at_hub, extracted_distances))
 
 print("Miles driven for truck 1:", truck1.miles_driven)
 
 # get_user_input()
 
-# for location in locations:
-#     print(location.distances)
+for location in locations:
+    print(location.distances)
 
-# The below code now seems to work but I am still having trouble with the nearest neighbor algorithm getting distances
-print(distances['1060 Dalton Ave S\n(84104)']['HUB'])  # Now this should work without a TypeError
+# The below code now seems to work, but I am still having trouble with the nearest neighbor algorithm getting distances
+print(extracted_distances['HUB']['HUB'])  # Now this should work without a TypeError
