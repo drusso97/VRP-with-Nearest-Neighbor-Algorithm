@@ -85,7 +85,7 @@ class Truck:
 class Location:
     def __init__(self, address, distances):
         # Manipulate address into same format as package objects so the strings can be compared.
-        self.address = address.replace('(', '').replace(')', '').strip().replace('\n', ', ')
+        self.address = address.strip().replace('\n', ', ')
         self.distances = distances
 
 
@@ -342,14 +342,18 @@ result = get_location_data()
 extracted_distances = result[0]  # Extract the distances dictionary
 extracted_locations = result[1]  # Extract the locations list
 
+print("Start")
+print(extracted_distances)
+print("End")
+
 print(nearest_neighbor_algorithm(trucks, packages_at_hub, extracted_distances))
 
 print("Miles driven for truck 1:", truck1.miles_driven)
 
 # get_user_input()
 
-for location in locations:
-    print(location.distances)
+# for location in locations:
+#     print(location.distances)
 
 # The below code now seems to work, but I am still having trouble with the nearest neighbor algorithm getting distances
 print(extracted_distances['HUB']['HUB'])  # Now this should work without a TypeError
