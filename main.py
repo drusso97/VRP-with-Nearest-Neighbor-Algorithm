@@ -6,6 +6,7 @@
 # The packages will be stored in a hash table with their ID being used as the key.
 # The package class stores all relevant information about each package.
 
+# Import the required libraries for the program to run. Built-in python libraries are allowed for the project.
 import csv
 from datetime import datetime, time
 
@@ -28,17 +29,17 @@ class Package:
         self.weight = weight
         self.special_notes = special_notes
         self.delivery_status = delivery_status
-        self.eta = "EOD"
+        self.eta = "tbd"
         self.delivered_time = "tbd"
 
     def __str__(self):
         if self.deadline != 'EOD':
             return (f"Package: {self.package_id}, Address: {self.address} {self.city},{self.zip_code},"
-                    f" deadline: {self.deadline.strftime('%I:%M %p')}, weight={self.weight},"
-                    f" delivery_status={self.delivery_status})")
+                    f" deadline: {self.deadline.strftime('%I:%M %p')}, weight: {self.weight},"
+                    f" status: {self.delivery_status})")
         else:
             return (f"Package: {self.package_id}, Address: {self.address} {self.city},{self.zip_code},"
-                    f" deadline: {self.deadline}, weight={self.weight}, delivery_status={self.delivery_status})")
+                    f" deadline: {self.deadline}, weight: {self.weight}, status: {self.delivery_status})")
 
 
 # Create hash table to store packages. Can store/access packages by delivery status as well.
@@ -177,7 +178,10 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
         return min(valid_packages, key=lambda pkg: distance_between(current_location, pkg.address))
 
     # Start at the hub
-    for truck in trucks:
+    # TODO: We want to make sure two of the trucks are utilized.
+    # TODO: Track miles and ensure that the miles traveled do not exceed 140 miles between the two trucks.
+    # There is no good reason to use the third truck since there are only two drivers.
+    for truck in trucks[:2]:
         current_location = 'Hub'
 
         # While there are still packages remaining
@@ -193,6 +197,7 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
                 routes[truck].append(str(nearest_package))
                 package_table.get_package(nearest_package.package_id, state="at_hub").delivery_status = "in transit"
                 truck.num_packages += 1
+                truck.miles_driven += distance_between(current_location, nearest_package.address)
 
                 # Mark the package as loaded
                 # TODO: Record their delivery time, truck they are on, and ETA
@@ -232,11 +237,14 @@ def lookup_package(package_id):
         package_to_lookup = package_table.get_package(package_id, state="delivered")
 
     if package_to_lookup is not None:
-        print("\nDelivery address:", package_to_lookup.address,
+        print("\nAddress:", package_to_lookup.address,
               package_to_lookup.city + ", " + package_to_lookup.zip_code)
-        print("Delivery deadline:", package_to_lookup.deadline)
-        print("Package weight:", package_to_lookup.weight + "KG")
-        print("Package", package_id, "is", package_to_lookup.delivery_status)
+        if package_to_lookup.deadline != 'EOD':
+            print("Deadline:", package_to_lookup.deadline.strftime('%I:%M %p'))
+        else:
+            print("Deadline:", package_to_lookup.deadline)
+        print("Weight:", package_to_lookup.weight + "KG")
+        print("Package", package_id, "is", package_to_lookup.delivery_status, "due at", package_to_lookup.eta)
         print()
     else:
         print("\nPackage not found. Please try another package ID.")
@@ -295,5 +303,7 @@ def get_user_input():
 
 distances = get_location_data()
 print(nearest_neighbor_algorithm(trucks, packages_at_hub, distances))
+
+print("Miles driven for truck 1:", truck1.miles_driven)
 
 get_user_input()
