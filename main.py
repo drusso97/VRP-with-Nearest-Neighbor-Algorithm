@@ -29,10 +29,16 @@ class Package:
         self.special_notes = special_notes
         self.delivery_status = delivery_status
         self.eta = "EOD"
-        self.delivery_time = "tbd"
+        self.delivered_time = "tbd"
 
     def __str__(self):
-        return f"Package: {self.package_id}, Address: {self.address} {self.city},{self.zip_code}, deadline: {self.deadline}, weight={self.weight}, delivery_status={self.delivery_status})"
+        if self.deadline != 'EOD':
+            return (f"Package: {self.package_id}, Address: {self.address} {self.city},{self.zip_code},"
+                    f" deadline: {self.deadline.strftime('%I:%M %p')}, weight={self.weight},"
+                    f" delivery_status={self.delivery_status})")
+        else:
+            return (f"Package: {self.package_id}, Address: {self.address} {self.city},{self.zip_code},"
+                    f" deadline: {self.deadline}, weight={self.weight}, delivery_status={self.delivery_status})")
 
 
 # Create hash table to store packages. Can store/access packages by delivery status as well.
@@ -70,7 +76,8 @@ class Truck:
         self.miles_driven = miles_driven
 
     def __str__(self):
-        return f"Truck(max_capacity={self.max_capacity}, num_packages={self.num_packages}, speed={self.speed}, miles_driven={self.miles_driven})"
+        return (f"Truck(max_capacity={self.max_capacity}, num_packages={self.num_packages}, speed={self.speed},"
+                f" miles_driven={self.miles_driven})")
 
 
 # Create location class
@@ -111,7 +118,6 @@ def get_package_data():
 
             if deadline != 'EOD':
                 deadline = datetime.combine(datetime.today(), datetime.strptime(deadline, "%I:%M %p").time())
-
 
             weight = row[6]
             special_notes = row[7]
