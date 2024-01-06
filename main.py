@@ -112,13 +112,9 @@ def get_package_data():
         reader_variable = csv.reader(package_file, delimiter=",")
         for row in reader_variable:
             package_id = int(row[0])
-            address = row[1].strip()  # Remove leading/trailing whitespaces
+            address = row[1]
             city = row[2]
             zip_code = row[4]
-
-            # Concatenate address, city, and zip code in the desired format
-            formatted_address = f"{address} {city}, {zip_code}"
-
             deadline = row[5]
 
             if deadline != 'EOD':
@@ -126,7 +122,7 @@ def get_package_data():
 
             weight = row[6]
             special_notes = row[7]
-            new_package = Package(package_id, formatted_address, city, zip_code, deadline, weight, special_notes)
+            new_package = Package(package_id, address, city, zip_code, deadline, weight, special_notes)
             package_table.add_package(package_id, new_package, state="at_hub")
 
 
@@ -155,36 +151,26 @@ def get_location_data():
 
             for i, distance_str in enumerate(row[2:]):
                 destination_location = local_locations[i].strip()
-
-                if current_location == 'HUB':
-                    # Skip 'HUB' case
-                    continue
-
-                # Concatenate address, city, and zip code in the desired format
-                formatted_destination_location = f"{destination_location}, {header[i + 2].split('(')[0].strip()}"
-
                 try:
                     if distance_str:
                         distance = float(distance_str)
-
-                        # Concatenate address, city, and zip code in the desired format
-                        formatted_destination_location = f"{destination_location}, {header[i + 2].split('(')[0].strip()}"
-
                     else:
                         distance = float('inf')
+                    distances[current_location][destination_location] = distance
 
-                    # Concatenate current location with its city and zip code
-                    formatted_current_location = f"{current_location}, {header[1].split('(')[0].strip()}"
-
-                    distances[formatted_current_location][formatted_destination_location] = distance
+                    # Check if 'HUB' key is present before setting the reverse distance
+                    # if 'HUB' in distances:
+                    #     distances[destination_location][current_location] = distance
 
                 except ValueError:
-                    distances[formatted_current_location][formatted_destination_location] = float('inf')
+                    distances[current_location][destination_location] = float('inf')
 
-            # Set distances from each location to itself as 0
-            if current_location != 'HUB':
-                formatted_current_location = f"{current_location}, {header[1].split('(')[0].strip()}".strip()
-                distances[formatted_current_location][formatted_current_location] = 0.0
+                    # Check if 'HUB' key is present before setting the reverse distance
+                    # if 'HUB' in distances:
+                    #     distances[destination_location][current_location] = float('inf')
+
+        # Set distances from each location to itself as 0
+        distances[current_location][current_location] = 0.0
 
     print("Locations:", local_locations)
     print("Distances:")
@@ -204,12 +190,8 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
 
     # Define function to calculate the distance between two locations
     def distance_between(location1, location2):
-        # location1 = location1.strip()
-        # location2 = location2.strip()
-
-        print("Location 1: ", location1)
-        print("Location 2: ", location2)
-        # print(distances[location1])
+        location1 = location1.strip()
+        location2 = location2.strip()
 
         print(f"Debug: Checking distance between {location1} and {location2}")
 
@@ -292,7 +274,8 @@ def lookup_package(package_id):
         package_to_lookup = package_table.get_package(package_id, state="delivered")
 
     if package_to_lookup is not None:
-        print("\nAddress:", package_to_lookup.address)
+        print("\nAddress:", package_to_lookup.address,
+              package_to_lookup.city + ", " + package_to_lookup.zip_code)
         if package_to_lookup.deadline != 'EOD':
             print("Deadline:", package_to_lookup.deadline.strftime('%I:%M %p'))
         else:
@@ -367,10 +350,10 @@ print(nearest_neighbor_algorithm(trucks, packages_at_hub, extracted_distances))
 
 print("Miles driven for truck 1:", truck1.miles_driven)
 
-get_user_input()
+# get_user_input()
 
 # for location in locations:
 #     print(location.distances)
 
 # The below code now seems to work, but I am still having trouble with the nearest neighbor algorithm getting distances
-print(extracted_distances['HUB']['HUB'])  # Now this should work without a TypeError
+print(extracted_distances['1060 Dalton Ave S\n(84104)']['HUB'])  # Now this should work without a TypeError
