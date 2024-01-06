@@ -356,4 +356,4 @@ print("Miles driven for truck 1:", truck1.miles_driven)
 #     print(location.distances)
 
 # The below code now seems to work, but I am still having trouble with the nearest neighbor algorithm getting distances
-print(extracted_distances['2600 Taylorsville Blvd\n(84118)']['1330 2100 S\n(84106)'])  # Now this should work without a TypeError
+print(extracted_distances['1060 Dalton Ave S, (84104)']['HUB'])  # Now this should work without a TypeError
