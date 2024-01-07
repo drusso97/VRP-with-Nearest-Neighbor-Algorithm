@@ -182,8 +182,6 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
 
     # Define function to calculate the distance between two locations
     def distance_between(location1, location2):
-        location1 = location1.strip()
-        location2 = location2.strip()
 
         # print(f"Debug: Checking distance between {location1} and {location2}")
 
@@ -229,6 +227,11 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
                 package_table.get_package(nearest_package.package_id, state="at_hub").delivery_status = "in transit"
                 truck.num_packages += 1
                 truck.miles_driven += distance_between(current_location, nearest_package.address)
+
+                # After loading the package in the nearest_neighbor_algorithm function
+                print(f"Truck {trucks.index(truck) + 1} - Loaded package {nearest_package.package_id}, "
+                      f"Distance to package: {distance_between(current_location, nearest_package.address)} miles, "
+                      f"Total miles traveled: {truck.miles_driven:.2f} miles")
 
                 # Mark the package as loaded
                 # TODO: Record their delivery time, truck they are on, and ETA
@@ -336,9 +339,9 @@ result = get_location_data()
 extracted_distances = result[0]  # Extract the distances dictionary
 extracted_locations = result[1]  # Extract the locations list
 
-print("Start")
-print(extracted_distances)
-print("End")
+# print("Start")
+# print(extracted_distances)
+# print("End")
 
 print(nearest_neighbor_algorithm(trucks, packages_at_hub, extracted_distances))
 
