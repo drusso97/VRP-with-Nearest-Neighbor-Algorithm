@@ -85,7 +85,7 @@ class Truck:
 class Location:
     def __init__(self, address, distances):
         # Manipulate address into same format as package objects so the strings can be compared.
-        self.address = address.strip().replace('\n', ', ')
+        self.address = address
         self.distances = distances
 
 
@@ -185,14 +185,14 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
         location1 = location1.strip()
         location2 = location2.strip()
 
-        #print(f"Debug: Checking distance between {location1} and {location2}")
+        # print(f"Debug: Checking distance between {location1} and {location2}")
 
         # Access distances using the locations as keys
         if location1 in distances and location2 in distances[location1]:
-            #print(distances[location1][location2])
+            # print(distances[location1][location2])
             return distances[location1][location2]
         elif location2 in distances and location1 in distances[location2]:
-            #print(distances[location2][location1])
+            # print(distances[location2][location1])
             return distances[location2][location1]
         else:
             print(f"Distance between {location1} and {location2} not available.")
@@ -225,7 +225,7 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
 
             if nearest_package is not None:
                 # Load the package
-                routes[truck].append(str(nearest_package))
+                routes[truck].append(nearest_package.address)
                 package_table.get_package(nearest_package.package_id, state="at_hub").delivery_status = "in transit"
                 truck.num_packages += 1
                 truck.miles_driven += distance_between(current_location, nearest_package.address)
@@ -350,5 +350,4 @@ print("Miles driven for truck 1:", truck1.miles_driven)
 #     print(location.distances)
 
 # The below code now seems to work, but I am still having trouble with the nearest neighbor algorithm getting distances
-print(extracted_distances['1060 Dalton Ave S, 84104'][
-          '1060 Dalton Ave S, 84104'])  # Now this should work without a TypeError
+print(extracted_distances['177 W Price Ave, 84115']['1330 2100 S, 84106'])
