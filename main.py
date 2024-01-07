@@ -94,7 +94,6 @@ locations = []
 package_table = PackageHashTable()
 
 packages_at_hub = package_table.get_packages_in_state("at_hub")
-packages_in_transit = package_table.get_packages_in_state("in_transit")
 delivered_packages = package_table.get_packages_in_state("delivered")
 
 # WGUPS has three trucks available
@@ -200,6 +199,12 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
     def get_nearest_package(current_location, remaining_packages, truck):
         # Sort packages by distance and filter out packages that exceed truck capacity
         valid_packages = [pkg for pkg in remaining_packages if truck.num_packages + 1 <= truck.max_capacity]
+
+        # TODO: While there are packages that do not have a deadline of 'EOD',
+        #  get the package with the earliest deadline
+
+        # TODO: Have one truck depart later in the day with the delayed packages. Could use two lists,
+        #  'truck1_packages', 'truck2_packages'
 
         if not valid_packages:
             return None  # No valid packages available
@@ -348,3 +353,9 @@ print("Miles driven for truck 1:", truck1.miles_driven)
 
 # The below code now seems to work, but I am still having trouble with the nearest neighbor algorithm getting distances
 print(extracted_distances['177 W Price Ave, 84115']['1330 2100 S, 84106'])
+
+packages_in_transit = package_table.get_packages_in_state("in_transit")
+
+for package_id, package in packages_in_transit.items():
+    if package.special_notes != '':
+        print(f"Package {package_id} - {package.special_notes}")
