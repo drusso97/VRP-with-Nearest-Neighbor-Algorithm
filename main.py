@@ -154,10 +154,10 @@ def get_location_data():
                 try:
                     if distance_str:
                         distance = float(distance_str)
+                        distances[current_location][destination_location] = distance
                     else:
-                        distance = float('inf')
-                    distances[current_location][destination_location] = distance
-
+                        # Ignore empty distances
+                        continue
                 except ValueError:
                     distances[current_location][destination_location] = float('inf')
 
@@ -231,7 +231,8 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
                 # After loading the package in the nearest_neighbor_algorithm function
                 print(f"Truck {trucks.index(truck) + 1} - Loaded package {nearest_package.package_id}, "
                       f"Distance to package: {distance_between(current_location, nearest_package.address)} miles, "
-                      f"Total miles traveled: {truck.miles_driven:.2f} miles")
+                      f"Total miles traveled: {truck.miles_driven:.2f} miles",
+                      f"Packages delivered: {delivered_packages}")
 
                 # Mark the package as loaded
                 # TODO: Record their delivery time, truck they are on, and ETA
@@ -339,18 +340,11 @@ result = get_location_data()
 extracted_distances = result[0]  # Extract the distances dictionary
 extracted_locations = result[1]  # Extract the locations list
 
-# print("Start")
-# print(extracted_distances)
-# print("End")
-
 print(nearest_neighbor_algorithm(trucks, packages_at_hub, extracted_distances))
 
 print("Miles driven for truck 1:", truck1.miles_driven)
 
 # get_user_input()
-
-# for location in locations:
-#     print(location.distances)
 
 # The below code now seems to work, but I am still having trouble with the nearest neighbor algorithm getting distances
 print(extracted_distances['177 W Price Ave, 84115']['1330 2100 S, 84106'])
