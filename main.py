@@ -112,7 +112,7 @@ def get_package_data():
         reader_variable = csv.reader(package_file, delimiter=",")
         for row in reader_variable:
             package_id = int(row[0])
-            address = row[1]
+            address = "{}, {}".format(row[1], row[4])
             city = row[2]
             zip_code = row[4]
             deadline = row[5]
@@ -141,7 +141,7 @@ def get_location_data():
         local_locations = [location.strip() for location in header[2:]]  # Remove extra spaces
 
         for row in reader_variable:
-            current_location = row[1].strip()
+            current_location = row[1].strip().replace('(', '').replace(')', '')
             distances[current_location] = {}
 
             # Ensure the number of distances matches the number of locations
@@ -150,7 +150,7 @@ def get_location_data():
                 continue
 
             for i, distance_str in enumerate(row[2:]):
-                destination_location = local_locations[i].strip()
+                destination_location = local_locations[i].strip().replace('(', '').replace(')', '')
                 try:
                     if distance_str:
                         distance = float(distance_str)
@@ -158,16 +158,8 @@ def get_location_data():
                         distance = float('inf')
                     distances[current_location][destination_location] = distance
 
-                    # Check if 'HUB' key is present before setting the reverse distance
-                    # if 'HUB' in distances:
-                    #     distances[destination_location][current_location] = distance
-
                 except ValueError:
                     distances[current_location][destination_location] = float('inf')
-
-                    # Check if 'HUB' key is present before setting the reverse distance
-                    # if 'HUB' in distances:
-                    #     distances[destination_location][current_location] = float('inf')
 
         # Set distances from each location to itself as 0
         distances[current_location][current_location] = 0.0
@@ -193,12 +185,14 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
         location1 = location1.strip()
         location2 = location2.strip()
 
-        print(f"Debug: Checking distance between {location1} and {location2}")
+        #print(f"Debug: Checking distance between {location1} and {location2}")
 
         # Access distances using the locations as keys
         if location1 in distances and location2 in distances[location1]:
+            #print(distances[location1][location2])
             return distances[location1][location2]
         elif location2 in distances and location1 in distances[location2]:
+            #print(distances[location2][location1])
             return distances[location2][location1]
         else:
             print(f"Distance between {location1} and {location2} not available.")
@@ -356,4 +350,5 @@ print("Miles driven for truck 1:", truck1.miles_driven)
 #     print(location.distances)
 
 # The below code now seems to work, but I am still having trouble with the nearest neighbor algorithm getting distances
-print(extracted_distances['1060 Dalton Ave S, (84104)']['HUB'])  # Now this should work without a TypeError
+print(extracted_distances['1060 Dalton Ave S, 84104'][
+          '1060 Dalton Ave S, 84104'])  # Now this should work without a TypeError
