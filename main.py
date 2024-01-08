@@ -282,6 +282,7 @@ def lookup_package(package_id):
         package_to_lookup = package_table.get_package(package_id, state="delivered")
 
     if package_to_lookup is not None:
+        # Display package details
         print("\nAddress:", package_to_lookup.address,
               package_to_lookup.city + ", " + package_to_lookup.zip_code)
         if package_to_lookup.deadline != 'EOD':
@@ -290,6 +291,13 @@ def lookup_package(package_id):
             print("Deadline:", package_to_lookup.deadline)
         print("Weight:", package_to_lookup.weight + "KG")
         print("Package", package_id, "is", package_to_lookup.delivery_status, "due at", package_to_lookup.eta)
+
+        # Display actual delivery time
+        print("Actual Delivery Time:", package_to_lookup.delivered_time)
+        if package_to_lookup.eta != 'tbd':
+            estimated_delivery_time = starting_time + timedelta(hours=package_to_lookup.eta)
+            print("Estimated Delivery Time:", estimated_delivery_time)
+
         print()
     else:
         print("\nPackage not found. Please try another package ID.")
@@ -354,10 +362,10 @@ print(nearest_neighbor_algorithm(trucks, packages_at_hub, extracted_distances))
 
 print("Miles driven for truck 1:", truck1.miles_driven)
 
-# get_user_input()
+get_user_input()
 
-# The below code now seems to work, but I am still having trouble with the nearest neighbor algorithm getting distances
-print(extracted_distances['177 W Price Ave, 84115']['1330 2100 S, 84106'])
+# Debug code for testing distance calculations.
+# print(extracted_distances['177 W Price Ave, 84115']['1330 2100 S, 84106'])
 
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 
