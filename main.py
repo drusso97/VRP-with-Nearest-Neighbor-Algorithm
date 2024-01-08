@@ -311,6 +311,7 @@ def time_function():
     print("This feature has not been added yet\n")
 
     # Print status of all packages at that time.
+    # Print status, ETA, truck.
 
     return
 
