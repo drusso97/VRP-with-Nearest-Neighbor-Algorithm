@@ -8,7 +8,7 @@
 
 # Import the required libraries for the program to run. Built-in python libraries are allowed for the project.
 import csv
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 
 starting_time = datetime.combine(datetime.today(), time(8, 0))
 
@@ -30,7 +30,7 @@ class Package:
         self.special_notes = special_notes
         self.delivery_status = delivery_status
         self.eta = "tbd"
-        self.delivered_time = "tbd"
+        self.delivered_time = None
 
     def __str__(self):
         if self.deadline != 'EOD':
@@ -75,6 +75,7 @@ class Truck:
         self.num_packages = 0
         self.speed = speed
         self.miles_driven = miles_driven
+        self.departure_time = '08:00AM'
 
     def __str__(self):
         return (f"Truck(max_capacity={self.max_capacity}, num_packages={self.num_packages}, speed={self.speed},"
@@ -237,12 +238,16 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
                 print(f"Truck {trucks.index(truck) + 1} - Loaded package {nearest_package.package_id}, "
                       f"Distance to package: {distance_between(current_location, nearest_package.address)} miles, "
                       f"Total miles traveled: {truck.miles_driven:.2f} miles",
-                      f"Packages delivered: {delivered_packages}")
+                      f"Packages delivered: {delivered_packages + 1},")
 
                 # Mark the package as loaded
                 # TODO: Record their delivery time, truck they are on, and ETA
                 package_table.add_package(nearest_package.package_id, nearest_package, state="in_transit")
                 package_table.remove_package(nearest_package.package_id, state="at_hub")
+
+                delivered_time = starting_time + timedelta(hours=truck.miles_driven / truck.speed)
+                package_table.get_package(nearest_package.package_id,
+                                          state="in_transit").delivered_time = delivered_time
 
                 # Update the current location
                 current_location = nearest_package.address
@@ -260,7 +265,7 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
                 current_location = 'HUB'
 
                 # Increment the number of delivered packages for this truck
-                delivered_packages += len(routes[truck])
+                # delivered_packages += len(routes[truck])
 
     return routes
 
@@ -357,5 +362,4 @@ print(extracted_distances['177 W Price Ave, 84115']['1330 2100 S, 84106'])
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 
 for package_id, package in packages_in_transit.items():
-    if package.special_notes != '':
-        print(f"Package {package_id} - {package.special_notes}")
+    print("Package:", package.package_id, package.delivered_time)
