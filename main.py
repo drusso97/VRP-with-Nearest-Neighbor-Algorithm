@@ -151,11 +151,6 @@ def get_location_data():
             current_location = row[1].strip().replace('(', '').replace(')', '')
             distances[current_location] = {}
 
-            # Ensure the number of distances matches the number of locations
-            if len(row) != len(local_locations) + 2:
-                print("Warning: Incorrect number of distances provided in the row.")
-                continue
-
             for i, distance_str in enumerate(row[2:]):
                 destination_location = local_locations[i].strip().replace('(', '').replace(')', '')
                 try:
@@ -179,7 +174,7 @@ def get_location_data():
     return distances, local_locations
 
 
-def nearest_neighbor_algorithm(trucks, packages, distances):
+def nearest_neighbor_algorithm(trucks, distances):
     # Initialize empty route for each truck
     routes = {truck: [] for truck in trucks}
 
@@ -367,7 +362,7 @@ result = get_location_data()
 extracted_distances = result[0]  # Extract the distances dictionary
 extracted_locations = result[1]  # Extract the locations list
 
-print(nearest_neighbor_algorithm(trucks, packages_at_hub, extracted_distances))
+print(nearest_neighbor_algorithm(trucks, extracted_distances))
 
 print("Miles driven for truck 1:", truck1.miles_driven)
 
