@@ -368,9 +368,6 @@ print("Miles driven for truck 1:", truck1.miles_driven)
 
 # get_user_input()
 
-# Debug code for testing distance calculations.
-# print(extracted_distances['177 W Price Ave, 84115']['1330 2100 S, 84106'])
-
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 
 for package_id, package in packages_in_transit.items():
