@@ -82,7 +82,13 @@ class Truck:
         self.num_packages = 0
         self.speed = speed
         self.miles_driven = miles_driven
-        self.departure_time = datetime.strptime(departure_time_str, '%I:%M %p')
+
+        # Remove 'AM' or 'PM' from departure_time_str
+        departure_time_str = departure_time_str.replace('AM', '').replace('PM', '')
+
+        # Include today's date in the departure time
+        today = datetime.today()
+        self.departure_time = datetime(today.year, today.month, today.day, *map(int, departure_time_str.split(':')))
 
     def __str__(self):
         return (f"Truck(max_capacity={self.max_capacity}, num_packages={self.num_packages}, speed={self.speed},"
@@ -97,7 +103,7 @@ class Location:
         self.distances = distances
 
 
-locations = []
+# locations = []
 
 package_table = PackageHashTable()
 
@@ -371,4 +377,5 @@ print("Miles driven for truck 1:", truck1.miles_driven)
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 
 for package_id, package in packages_in_transit.items():
-    print("Package:", package.package_id, package.delivered_time)
+    if package.special_notes != '':
+        print("Package:", package.package_id, package.special_notes)
