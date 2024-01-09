@@ -366,7 +366,7 @@ print(nearest_neighbor_algorithm(trucks, extracted_distances))
 
 print("Miles driven for truck 1:", truck1.miles_driven)
 
-get_user_input()
+# get_user_input()
 
 # Debug code for testing distance calculations.
 # print(extracted_distances['177 W Price Ave, 84115']['1330 2100 S, 84106'])
