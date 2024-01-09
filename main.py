@@ -41,6 +41,13 @@ class Package:
             return (f"Package: {self.package_id}, Address: {self.address} {self.city},{self.zip_code},"
                     f" deadline: {self.deadline}, weight: {self.weight}, status: {self.delivery_status})")
 
+    # Method to format delivered_time with today's date
+    def formatted_delivered_time(self):
+        if self.delivered_time:
+            return self.delivered_time.strftime("%I:%M %p")
+        else:
+            return "Not delivered yet"
+
 
 # Create hash table to store packages. Can store/access packages by delivery status as well.
 class PackageHashTable:
@@ -70,12 +77,12 @@ class PackageHashTable:
 
 # Create truck class
 class Truck:
-    def __init__(self, max_capacity=16, speed=18.0, miles_driven=0.0):
+    def __init__(self, max_capacity=16, speed=18.0, miles_driven=0.0, departure_time_str='08:00 AM'):
         self.max_capacity = max_capacity
         self.num_packages = 0
         self.speed = speed
         self.miles_driven = miles_driven
-        self.departure_time = '08:00AM'
+        self.departure_time = datetime.strptime(departure_time_str, '%I:%M %p')
 
     def __str__(self):
         return (f"Truck(max_capacity={self.max_capacity}, num_packages={self.num_packages}, speed={self.speed},"
@@ -245,7 +252,8 @@ def nearest_neighbor_algorithm(trucks, packages, distances):
                 package_table.add_package(nearest_package.package_id, nearest_package, state="in_transit")
                 package_table.remove_package(nearest_package.package_id, state="at_hub")
 
-                delivered_time = starting_time + timedelta(hours=truck.miles_driven / truck.speed)
+                # Record the delivery time
+                delivered_time = truck.departure_time + timedelta(hours=truck.miles_driven / truck.speed)
                 package_table.get_package(nearest_package.package_id,
                                           state="in_transit").delivered_time = delivered_time
 
@@ -293,7 +301,7 @@ def lookup_package(package_id):
         print("Package", package_id, "is", package_to_lookup.delivery_status, "due at", package_to_lookup.eta)
 
         # Display actual delivery time
-        print("Actual Delivery Time:", package_to_lookup.delivered_time)
+        print("Actual Delivery Time:", package_to_lookup.formatted_delivered_time())
         if package_to_lookup.eta != 'tbd':
             estimated_delivery_time = starting_time + timedelta(hours=package_to_lookup.eta)
             print("Estimated Delivery Time:", estimated_delivery_time)
