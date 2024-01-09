@@ -29,7 +29,7 @@ class Package:
         self.weight = weight
         self.special_notes = special_notes
         self.delivery_status = delivery_status
-        self.eta = "tbd"
+        self.eta = "TBD"
         self.delivered_time = None
 
     def __str__(self):
