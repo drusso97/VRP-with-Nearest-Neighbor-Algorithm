@@ -226,14 +226,10 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
     # Define function to calculate the distance between two locations
     def distance_between(location1, location2):
 
-        # print(f"Debug: Checking distance between {location1} and {location2}")
-
         # Access distances using the locations as keys
         if location1 in distances and location2 in distances[location1]:
-            # print(distances[location1][location2])
             return distances[location1][location2]
         elif location2 in distances and location1 in distances[location2]:
-            # print(distances[location2][location1])
             return distances[location2][location1]
         else:
             print(f"Distance between {location1} and {location2} not available.")
@@ -282,10 +278,10 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
                 package_table.add_package(nearest_package.package_id, nearest_package, state="in_transit")
                 package_table.remove_package(nearest_package.package_id, state="at_hub")
 
-                # Record the delivery time
-                delivered_time = truck.departure_time + timedelta(hours=truck.miles_driven / truck.speed)
+                # Record the eta
+                eta = truck.departure_time + timedelta(hours=truck.miles_driven / truck.speed)
                 package_table.get_package(nearest_package.package_id,
-                                          state="in_transit").delivered_time = delivered_time
+                                          state="in_transit").eta = eta
 
                 # Update the current location
                 current_location = nearest_package.address
