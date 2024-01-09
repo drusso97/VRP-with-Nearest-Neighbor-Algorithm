@@ -139,6 +139,41 @@ def get_package_data():
             package_table.add_package(package_id, new_package, state="at_hub")
 
 
+def apply_package_restrictions(packages, current_location, truck):
+    restricted_packages = []
+
+    for pkg in packages:
+        if pkg.package_id == 14:
+            # Package 14 must be delivered with 15 and 19
+            if not (package_table.get_package(15) and package_table.get_package(19)):
+                continue
+        elif pkg.package_id == 16:
+            # Package 16 must be delivered with 13 and 19
+            if not (package_table.get_package(13) and package_table.get_package(19)):
+                continue
+        elif pkg.package_id == 25 or pkg.package_id == 6 or pkg.package_id == 28 or pkg.package_id == 32:
+            # Packages 25, 6, 28, and 32 are delayed and should not be loaded until 9:05 am
+            if datetime.now().time() < time(9, 5):
+                continue
+        elif pkg.package_id == 20:
+            # Package 20 must be delivered with 13 and 15
+            if not (package_table.get_package(13) and package_table.get_package(15)):
+                continue
+        elif pkg.package_id in [36, 18, 38, 3]:
+            # Packages 36, 18, 38, and 3 can only be on truck 2
+            if truck != truck2:
+                continue
+        elif pkg.package_id == 9:
+            # Package 9 has a wrong address listed
+            if starting_time >= datetime.combine(datetime.today(), time(10, 20)):
+                pkg.address = "410 S State St"
+
+        # If the package passed all restrictions, add it to the list
+        restricted_packages.append(pkg)
+
+    return restricted_packages
+
+
 # Fill the package hash table
 get_package_data()
 
@@ -180,7 +215,7 @@ def get_location_data():
     return distances, local_locations
 
 
-def nearest_neighbor_algorithm(trucks, distances):
+def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
     # Initialize empty route for each truck
     routes = {truck: [] for truck in trucks}
 
@@ -204,16 +239,12 @@ def nearest_neighbor_algorithm(trucks, distances):
             print(f"Distance between {location1} and {location2} not available.")
             return float('inf')  # or any other appropriate value for missing distances
 
-    # Define function to get the nearest package for a given location
+    # Define function to get the nearest package for a given location and truck
     def get_nearest_package(current_location, remaining_packages, truck):
-        # Sort packages by distance and filter out packages that exceed truck capacity
         valid_packages = [pkg for pkg in remaining_packages if truck.num_packages + 1 <= truck.max_capacity]
 
-        # TODO: While there are packages that do not have a deadline of 'EOD',
-        #  get the package with the earliest deadline
-
-        # TODO: Have one truck depart later in the day with the delayed packages. Could use two lists,
-        #  'truck1_packages', 'truck2_packages'
+        # Apply restrictions for specific packages
+        valid_packages = apply_package_restrictions(valid_packages, current_location, truck)
 
         if not valid_packages:
             return None  # No valid packages available
@@ -227,8 +258,7 @@ def nearest_neighbor_algorithm(trucks, distances):
     for truck in trucks[:2]:
         current_location = 'HUB'
 
-        # While there are still packages remaining
-        while package_table.get_packages_in_state("at_hub"):
+        while truck.num_packages < truck.max_capacity:
             nearest_package = get_nearest_package(
                 current_location,
                 package_table.get_packages_in_state("at_hub").values(),
@@ -246,10 +276,9 @@ def nearest_neighbor_algorithm(trucks, distances):
                 print(f"Truck {trucks.index(truck) + 1} - Loaded package {nearest_package.package_id}, "
                       f"Distance to package: {distance_between(current_location, nearest_package.address)} miles, "
                       f"Total miles traveled: {truck.miles_driven:.2f} miles",
-                      f"Packages delivered: {delivered_packages + 1},")
+                      f"Packages delivered: {delivered_packages + 1}")
 
                 # Mark the package as loaded
-                # TODO: Record their delivery time, truck they are on, and ETA
                 package_table.add_package(nearest_package.package_id, nearest_package, state="in_transit")
                 package_table.remove_package(nearest_package.package_id, state="at_hub")
 
@@ -261,10 +290,6 @@ def nearest_neighbor_algorithm(trucks, distances):
                 # Update the current location
                 current_location = nearest_package.address
 
-                if nearest_package.package_id == 9 and starting_time >= datetime.combine(datetime.today(),
-                                                                                         time(10, 20)):
-                    nearest_package.address = "410 S State St"
-
                 delivered_packages += 1
 
             else:
@@ -272,9 +297,6 @@ def nearest_neighbor_algorithm(trucks, distances):
                 routes[truck].append('HUB')  # Indicates a return to the hub
                 truck.num_packages = 0
                 current_location = 'HUB'
-
-                # Increment the number of delivered packages for this truck
-                # delivered_packages += len(routes[truck])
 
     return routes
 
@@ -376,6 +398,25 @@ print("Miles driven for truck 1:", truck1.miles_driven)
 
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 
+num_restricted_pkgs = 0
+
 for package_id, package in packages_in_transit.items():
     if package.special_notes != '':
-        print("Package:", package.package_id, package.special_notes)
+        num_restricted_pkgs += 1
+        print("Package:", package.package_id, package.special_notes, "-" ,num_restricted_pkgs)
+
+
+# Check delivery status of all packages
+for package_id, package in package_table.get_packages_in_state("in_transit").items():
+    print(f"Package {package_id} - Delivery Status: {package.delivery_status}")
+
+for package_id, package in package_table.get_packages_in_state("delivered").items():
+    print(f"Package {package_id} - Delivered at: {package.formatted_delivered_time()}")
+
+# Check detailed delivery status of packages in transit
+for package_id, package in package_table.get_packages_in_state("in_transit").items():
+    print(f"Package {package_id} - Delivery Status: {package.delivery_status}")
+    print(f"  Address: {package.address}, Deadline: {package.deadline}")
+    print(f"  Distance traveled: {truck1.miles_driven:.2f} miles")
+    print(f"  ETA: {package.eta}, Delivered Time: {package.formatted_delivered_time()}")
+    print()
