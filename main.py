@@ -10,12 +10,6 @@
 import csv
 from datetime import datetime, time, timedelta
 
-starting_time = datetime.combine(datetime.today(), time(8, 0))
-
-formatted_starting_time = starting_time.strftime("%I:%M %p")
-
-print("Starting time:", formatted_starting_time)
-
 
 # Create package class.
 class Package:
@@ -103,8 +97,6 @@ class Location:
         self.distances = distances
 
 
-# locations = []
-
 package_table = PackageHashTable()
 
 packages_at_hub = package_table.get_packages_in_state("at_hub")
@@ -165,7 +157,7 @@ def apply_package_restrictions(packages, current_location, truck):
                 continue
         elif pkg.package_id == 9:
             # Package 9 has a wrong address listed
-            if starting_time >= datetime.combine(datetime.today(), time(10, 20)):
+            if truck.departure_time >= datetime.combine(datetime.today(), time(10, 20)):
                 pkg.address = "410 S State St"
 
         # If the package passed all restrictions, add it to the list
@@ -207,10 +199,10 @@ def get_location_data():
         # Set distances from each location to itself as 0
         distances[current_location][current_location] = 0.0
 
-    print("Locations:", local_locations)
-    print("Distances:")
-    for location, dist_dict in distances.items():
-        print(f"{location}: {dist_dict}")
+    # print("Locations:", local_locations)
+    # print("Distances:")
+    # for location, dist_dict in distances.items():
+    #     print(f"{location}: {dist_dict}")
 
     return distances, local_locations
 
@@ -389,18 +381,23 @@ extracted_locations = result[1]  # Extract the locations list
 print(nearest_neighbor_algorithm(trucks, extracted_distances))
 
 print("Miles driven for truck 1:", truck1.miles_driven)
+print("Miles driven for truck 2:", truck2.miles_driven)
+print("Total miles driven:", truck1.miles_driven + truck2.miles_driven)
 
 # get_user_input()
 
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 
 num_restricted_pkgs = 0
+restricted_pkgs = []
 
 for package_id, package in packages_in_transit.items():
     if package.special_notes != '':
         num_restricted_pkgs += 1
-        print("Package:", package.package_id, package.special_notes, "-" ,num_restricted_pkgs)
+        print("Package:", package.package_id, package.special_notes, "-", num_restricted_pkgs)
+        restricted_pkgs.append(package.package_id)
 
+print(restricted_pkgs)
 
 # Check delivery status of all packages
 for package_id, package in package_table.get_packages_in_state("in_transit").items():
