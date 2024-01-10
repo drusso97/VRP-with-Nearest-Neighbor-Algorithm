@@ -246,7 +246,7 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
     for truck in trucks[:2]:
         current_location = 'HUB'
 
-        while truck.num_packages < truck.max_capacity:
+        while package_table.get_packages_in_state("at_hub") or package_table.get_packages_in_state("in_transit"):
             nearest_package = get_nearest_package(
                 current_location,
                 package_table.get_packages_in_state("at_hub").values(),
@@ -286,7 +286,7 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
                 truck.num_packages = 0
                 current_location = 'HUB'
 
-    return routes
+    # return routes
 
 
 # Define function to lookup package by ID
@@ -313,7 +313,7 @@ def lookup_package(package_id):
 
         # Display actual delivery time
         print("Actual Delivery Time:", package_to_lookup.formatted_delivered_time())
-        if package_to_lookup.eta != 'tbd':
+        if package_to_lookup.eta != 'TBD':
             estimated_delivery_time = starting_time + timedelta(hours=package_to_lookup.eta)
             print("Estimated Delivery Time:", estimated_delivery_time)
 
@@ -394,7 +394,7 @@ restricted_pkgs = []
 for package_id, package in packages_in_transit.items():
     if package.special_notes != '':
         num_restricted_pkgs += 1
-        print("Package:", package.package_id, package.special_notes, "-", num_restricted_pkgs)
+        print("Package:", package.package_id, "-", package.special_notes, "-", num_restricted_pkgs)
         restricted_pkgs.append(package.package_id)
 
 print(restricted_pkgs)
