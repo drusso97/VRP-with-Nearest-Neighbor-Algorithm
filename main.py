@@ -277,7 +277,7 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
 
                 # Update the current location
                 current_location = nearest_package.address
-                get_nearest_package(current_location, package_table.get_packages_in_state("at_hub"), truck)
+                get_nearest_package(current_location, package_table.get_packages_in_state("at_hub").values(), truck)
 
                 delivered_packages += 1
 
