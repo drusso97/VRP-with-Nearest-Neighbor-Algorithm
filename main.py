@@ -243,7 +243,7 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
     # TODO: We want to make sure two of the trucks are utilized.
     # TODO: Track miles and ensure that the miles traveled do not exceed 140 miles between the two trucks.
     # There is no good reason to use the third truck since there are only two drivers.
-    while any(package_table.get_packages_in_state("at_hub") for truck in trucks[:2]):
+    while package_table.get_packages_in_state("at_hub"):
         for truck in trucks[:2]:
 
             # TODO: This may be causing issues. The current location is being rewritten as HUB every time
@@ -275,8 +275,7 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
 
                 # Record the eta
                 eta = truck.departure_time + timedelta(hours=truck.miles_driven / truck.speed)
-                package_table.get_package(nearest_package.package_id,
-                                          state="in_transit").eta = eta
+                package_table.get_package(nearest_package.package_id, state="in_transit").eta = eta
 
                 # Update the current location
                 current_location = nearest_package.address
