@@ -243,50 +243,82 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
     # TODO: We want to make sure two of the trucks are utilized.
     # TODO: Track miles and ensure that the miles traveled do not exceed 140 miles between the two trucks.
     # There is no good reason to use the third truck since there are only two drivers.
-    for truck in trucks[:2]:
-        current_location = 'HUB'
+    while all(
+            package_table.get_packages_in_state("at_hub") or package_table.get_packages_in_state("in_transit") for truck
+            in trucks):
+        for truck in trucks[:2]:
+            current_location = 'HUB'
 
-        while package_table.get_packages_in_state("at_hub") or package_table.get_packages_in_state("in_transit"):
-            nearest_package = get_nearest_package(
-                current_location,
-                package_table.get_packages_in_state("at_hub").values(),
-                truck
-            )
+            # Load the truck to max capacity
+            while truck.num_packages < truck.max_capacity:
+                nearest_package = get_nearest_package(
+                    current_location,
+                    package_table.get_packages_in_state("at_hub").values(),
+                    truck
+                )
 
-            if nearest_package is not None:
-                # Load the package
-                routes[truck].append(nearest_package.address)
-                package_table.get_package(nearest_package.package_id, state="at_hub").delivery_status = "in transit"
-                truck.num_packages += 1
-                truck.miles_driven += distance_between(current_location, nearest_package.address)
+                if nearest_package is not None:
+                    # Load the package
+                    routes[truck].append(nearest_package.address)
+                    package_table.get_package(nearest_package.package_id, state="at_hub").delivery_status = "in transit"
+                    truck.num_packages += 1
+                    truck.miles_driven += distance_between(current_location, nearest_package.address)
 
-                # After loading the package in the nearest_neighbor_algorithm function
-                print(f"Truck {trucks.index(truck) + 1} - Loaded package {nearest_package.package_id}, "
-                      f"Distance to package: {distance_between(current_location, nearest_package.address)} miles, "
-                      f"Total miles traveled: {truck.miles_driven:.2f} miles",
+                    # After loading the package in the nearest_neighbor_algorithm function
+                    print(f"Truck {trucks.index(truck) + 1} - Loaded package {nearest_package.package_id}, "
+                          f"Distance to package: {distance_between(current_location, nearest_package.address)} miles, "
+                          f"Total miles traveled: {truck.miles_driven:.2f} miles",
+                          f"Packages delivered: {delivered_packages + 1}")
+
+                    # Mark the package as loaded
+                    package_table.add_package(nearest_package.package_id, nearest_package, state="in_transit")
+                    package_table.remove_package(nearest_package.package_id, state="at_hub")
+
+                    # Record the eta
+                    eta = truck.departure_time + timedelta(hours=truck.miles_driven / truck.speed)
+                    package_table.get_package(nearest_package.package_id,
+                                              state="in_transit").eta = eta
+
+                    # Update the current location
+                    current_location = nearest_package.address
+
+                    delivered_packages += 1
+
+                else:
+                    # Break out of the loading loop when no valid package is available
+                    break
+
+            # Break out of the loading loop if there are no more packages at the hub or in transit
+            if not (package_table.get_packages_in_state("at_hub") or package_table.get_packages_in_state("in_transit")):
+                break
+
+            # Deliver all packages and return to the hub
+            while routes[truck]:
+                # Deliver the packages
+                current_location = routes[truck].pop(0)
+                print(f"Truck {trucks.index(truck) + 1} - Delivering to {current_location}")
+                # TODO: Miles being added incorrectly
+                truck.miles_driven += distance_between('HUB', current_location)
+                truck.num_packages -= 1
+
+                # Update package status to delivered
+                in_transit_packages = package_table.get_packages_in_state("in_transit").values()
+                for pkg in in_transit_packages:
+                    if pkg.address == current_location:
+                        # Record the delivered time
+                        pkg.delivered_time = datetime.now()
+                        # Update the delivery status
+                        pkg.delivery_status = "delivered"
+                        # Remove from "in_transit"
+                        package_table.remove_package(pkg.package_id, state="in_transit")
+
+                print(f"Total miles traveled: {truck.miles_driven:.2f} miles",
                       f"Packages delivered: {delivered_packages + 1}")
 
-                # Mark the package as loaded
-                package_table.add_package(nearest_package.package_id, nearest_package, state="in_transit")
-                package_table.remove_package(nearest_package.package_id, state="at_hub")
-
-                # Record the eta
-                eta = truck.departure_time + timedelta(hours=truck.miles_driven / truck.speed)
-                package_table.get_package(nearest_package.package_id,
-                                          state="in_transit").eta = eta
-
-                # Update the current location
-                current_location = nearest_package.address
-
-                delivered_packages += 1
-
-            else:
-                # If no valid package is available, return to the hub to load more packages
-                routes[truck].append('HUB')  # Indicates a return to the hub
-                truck.num_packages = 0
-                current_location = 'HUB'
-
-    # return routes
+            # Return to the hub after delivering all packages
+            routes[truck].append('HUB')
+            current_location = 'HUB'
+    return routes
 
 
 # Define function to lookup package by ID
