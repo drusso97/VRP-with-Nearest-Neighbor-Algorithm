@@ -243,7 +243,7 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
     # TODO: We want to make sure two of the trucks are utilized.
     # TODO: Track miles and ensure that the miles traveled do not exceed 140 miles between the two trucks.
     # There is no good reason to use the third truck since there are only two drivers.
-    while all(
+    while any(
             package_table.get_packages_in_state("at_hub") or package_table.get_packages_in_state("in_transit") for truck
             in trucks):
         for truck in trucks[:2]:
@@ -302,15 +302,21 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
                 truck.num_packages -= 1
 
                 # Update package status to delivered
-                in_transit_packages = package_table.get_packages_in_state("in_transit").values()
+                in_transit_packages = list(package_table.get_packages_in_state("in_transit").values())
+                packages_to_remove = []
+
                 for pkg in in_transit_packages:
                     if pkg.address == current_location:
                         # Record the delivered time
                         pkg.delivered_time = datetime.now()
                         # Update the delivery status
                         pkg.delivery_status = "delivered"
-                        # Remove from "in_transit"
-                        package_table.remove_package(pkg.package_id, state="in_transit")
+                        # Add package to the list for removal
+                        packages_to_remove.append(pkg.package_id)
+
+                # Remove packages outside the loop
+                for package_id in packages_to_remove:
+                    package_table.remove_package(package_id, state="in_transit")
 
                 print(f"Total miles traveled: {truck.miles_driven:.2f} miles",
                       f"Packages delivered: {delivered_packages + 1}")
@@ -318,6 +324,18 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
             # Return to the hub after delivering all packages
             routes[truck].append('HUB')
             current_location = 'HUB'
+
+        # Print all packages in transit or at the hub at the end of the algorithm
+        print("Packages in Transit or at the Hub after the algorithm:")
+        for state in ["at_hub", "in_transit"]:
+            packages = package_table.get_packages_in_state(state)
+            for package_id, package in packages.items():
+                print(f"Package {package_id} - Delivery Status: {package.delivery_status}, State: {state}")
+                print(f"  Address: {package.address}, Deadline: {package.deadline}")
+                if state == "in_transit":
+                    print(f"  ETA: {package.eta}, Delivered Time: {package.formatted_delivered_time()}")
+                print()
+
     return routes
 
 
