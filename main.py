@@ -4,7 +4,7 @@
 
 # This program uses the nearest neighbor algorithm to design an efficient route to deliver packages.
 # The packages will be stored in a hash table with their ID being used as the key.
-# The package class stores all relevant information about each package.
+# The package class stores all relevant information about each package
 
 # Import the required libraries for the program to run. Built-in python libraries are allowed for the project.
 import csv
