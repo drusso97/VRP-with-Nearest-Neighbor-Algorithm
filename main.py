@@ -225,7 +225,7 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
 
     # Define function to get the nearest package for a given location and truck
     def get_nearest_package(current_location, remaining_packages, truck):
-        valid_packages = [pkg for pkg in remaining_packages if truck.num_packages + 1 <= truck.max_capacity]
+        valid_packages = [pkg for pkg in remaining_packages if truck.num_packages + 1 < truck.max_capacity]
 
         # Apply restrictions for specific packages
         valid_packages = apply_package_restrictions(
@@ -245,6 +245,9 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
     # There is no good reason to use the third truck since there are only two drivers.
     while any(package_table.get_packages_in_state("at_hub") for truck in trucks[:2]):
         for truck in trucks[:2]:
+
+            # TODO: This may be causing issues. The current location is being rewritten as HUB every time
+            #  the algorithm is called
             current_location = 'HUB'
 
             nearest_package = get_nearest_package(
@@ -286,48 +289,18 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
                 break
 
             # Break out of the main loop if there are no more packages at the hub or in transit for any truck
-            if not any(
-                    package_table.get_packages_in_state("at_hub") or package_table.get_packages_in_state(
-                        "in_transit") for
-                    truck in trucks):
+            if not any(package_table.get_packages_in_state("at_hub") for truck in trucks):
                 break
 
-            # Deliver all packages and return to the hub
-            while routes[truck]:
-                # Deliver the packages
-                current_location = routes[truck].pop(0)
-                print(f"Truck {trucks.index(truck) + 1} - Delivering to {current_location}")
-                # TODO: Miles being added incorrectly
-                truck.miles_driven += distance_between('HUB', current_location)
-                truck.num_packages -= 1
-
-                # Update package status to delivered
-                in_transit_packages = list(package_table.get_packages_in_state("in_transit").values())
-                packages_to_remove = []
-
-                for pkg in in_transit_packages:
-                    if pkg.address == current_location:
-                        # Record the delivered time
-                        pkg.delivered_time = datetime.now()
-                        # Update the delivery status
-                        pkg.delivery_status = "delivered"
-                        # Add package to the list for removal
-                        packages_to_remove.append(pkg.package_id)
-
-                # Remove packages outside the loop
-                for package_id in packages_to_remove:
-                    package_table.remove_package(package_id, state="in_transit")
-
-                print(f"Total miles traveled: {truck.miles_driven:.2f} miles",
-                      f"Packages delivered: {delivered_packages + 1}")
-
-            # Return to the hub after delivering all packages
-            routes[truck].append('HUB')
-            current_location = 'HUB'
+            if truck.num_packages == truck.max_capacity:
+                routes[truck].append('HUB')
+                current_location = 'HUB'
+                truck.num_packages = 0
+                get_nearest_package(current_location, package_table.get_packages_in_state("at_hub").values(), truck)
 
         # Print all packages in transit or at the hub at the end of the algorithm
         print("Packages in Transit or at the Hub after the algorithm:")
-        for state in ["at_hub", "in_transit"]:
+        for state in ["at_hub"]:
             packages = package_table.get_packages_in_state(state)
             for package_id, package in packages.items():
                 print(f"Package {package_id} - Delivery Status: {package.delivery_status}, State: {state}")
@@ -436,12 +409,12 @@ print("Total miles driven:", truck1.miles_driven + truck2.miles_driven)
 
 # get_user_input()
 
-packages_in_transit = package_table.get_packages_in_state("at_hub")
+packages_at_hub = package_table.get_packages_in_state("at_hub")
 
 num_restricted_pkgs = 0
 restricted_pkgs = []
 
-for package_id, package in packages_in_transit.items():
+for package_id, package in packages_at_hub.items():
     if package.special_notes != '':
         num_restricted_pkgs += 1
         print("Package:", package.package_id, "-", package.special_notes)
