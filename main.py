@@ -133,7 +133,7 @@ def get_package_data():
 
 def apply_package_restrictions(packages, current_location, truck, package_table):
     restricted_packages = []
-    packages_at_hub = package_table.get_packages_in_state("at_hub")
+    # packages_at_hub = package_table.get_packages_in_state("at_hub")
 
     for pkg in packages:
         if pkg.package_id == 14 and not (
@@ -432,7 +432,7 @@ result = get_location_data()
 extracted_distances = result[0]  # Extract the distances dictionary
 extracted_locations = result[1]  # Extract the locations list
 
-# print(nearest_neighbor_algorithm(trucks, extracted_distances))
+print(nearest_neighbor_algorithm(trucks, extracted_distances))
 
 print("Miles driven for truck 1:", truck1.miles_driven)
 print("Miles driven for truck 2:", truck2.miles_driven)
@@ -440,7 +440,7 @@ print("Total miles driven:", truck1.miles_driven + truck2.miles_driven)
 
 # get_user_input()
 
-packages_in_transit = package_table.get_packages_in_state("in_transit")
+packages_in_transit = package_table.get_packages_in_state("at_hub")
 
 num_restricted_pkgs = 0
 restricted_pkgs = []
@@ -448,7 +448,7 @@ restricted_pkgs = []
 for package_id, package in packages_in_transit.items():
     if package.special_notes != '':
         num_restricted_pkgs += 1
-        print("Package:", package.package_id, "-", package.special_notes, "-", num_restricted_pkgs)
+        print("Package:", package.package_id, "-", package.special_notes)
         restricted_pkgs.append(package.package_id)
 
 print(restricted_pkgs)
