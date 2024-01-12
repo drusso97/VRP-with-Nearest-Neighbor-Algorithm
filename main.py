@@ -136,24 +136,12 @@ def apply_package_restrictions(packages, current_location, truck):
 
     for pkg in packages:
         # The following packages must all be delivered together.
-        if pkg.package_id in [13, 15, 20, 16, 19, 14]:
-            if not (truck.max_capacity - truck.num_packages <= 6):
-                continue
-        if pkg.package_id == 14:
-            # Package 14 must be delivered with 15 and 19
-            if not (package_table.get_package(15) and package_table.get_package(19)):
-                continue
-        elif pkg.package_id == 16:
-            # Package 16 must be delivered with 13 and 19
-            if not (package_table.get_package(13) and package_table.get_package(19)):
+        if pkg.package_id in [13, 14, 15, 16, 19, 20]:
+            if not (truck.max_capacity - truck.num_packages >= 6):
                 continue
         elif pkg.package_id == 25 or pkg.package_id == 6 or pkg.package_id == 28 or pkg.package_id == 32:
             # Packages 25, 6, 28, and 32 are delayed and should not be loaded until 9:05 am
             if datetime.now().time() < time(9, 5):
-                continue
-        elif pkg.package_id == 20:
-            # Package 20 must be delivered with 13 and 15
-            if not (package_table.get_package(13) and package_table.get_package(15)):
                 continue
         elif pkg.package_id in [36, 18, 38, 3]:
             # Packages 36, 18, 38, and 3 can only be on truck 2
