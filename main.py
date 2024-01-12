@@ -213,8 +213,11 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
 
     delivered_packages = 0
 
+    # TODO: Find a way to track delivered packages and the time that they were delivered.
+
     # Define function to calculate the distance between two locations
     def distance_between(location1, location2):
+
         # Access distances using the locations as keys
         if location1 in distances and location2 in distances[location1]:
             return distances[location1][location2]
@@ -224,16 +227,34 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
             print(f"Distance between {location1} and {location2} not available.")
             return float('inf')  # or any other appropriate value for missing distances
 
-    # Start at the hub. There is no good reason to use the third truck since there are only two drivers.
+    # Define function to get the nearest package for a given location and truck
+    def get_nearest_package(current_location, remaining_packages, truck):
+        valid_packages = [pkg for pkg in remaining_packages if truck.num_packages + 1 <= truck.max_capacity]
+
+        # Apply restrictions for specific packages
+        valid_packages = apply_package_restrictions(valid_packages, current_location, truck)
+
+        if not valid_packages:
+            return None  # No valid packages available
+
+        return min(valid_packages, key=lambda pkg: distance_between(current_location, pkg.address))
+
+    # Start at the hub
+    # TODO: We want to make sure two of the trucks are utilized.
+    # TODO: Track miles and ensure that the miles traveled do not exceed 140 miles between the two trucks.
+    # There is no good reason to use the third truck since there are only two drivers.
     for truck in trucks[:2]:
         current_location = 'HUB'
-        remaining_packages = list(package_table.get_packages_in_state("at_hub").values())
 
-        while remaining_packages:
-            nearest_package = min(remaining_packages, key=lambda pkg: distance_between(current_location, pkg.address))
+        while True:  # Infinite loop
+            nearest_package = get_nearest_package(
+                current_location,
+                package_table.get_packages_in_state("at_hub").values(),
+                truck
+            )
 
-            # Load the package
-            if truck.num_packages + 1 <= truck.max_capacity:
+            if nearest_package is not None:
+                # Load the package
                 routes[truck].append(nearest_package.address)
                 package_table.get_package(nearest_package.package_id, state="at_hub").delivery_status = "in transit"
                 truck.num_packages += 1
@@ -259,14 +280,14 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
 
                 delivered_packages += 1
 
-                # Remove the loaded package from the remaining packages
-                remaining_packages.remove(nearest_package)
-
+                # Check if the truck is full and needs to return to the hub
+                if truck.num_packages >= truck.max_capacity:
+                    routes[truck].append('HUB')  # Indicates a return to the hub
+                    truck.num_packages = 0
+                    current_location = 'HUB'
             else:
-                # If the truck is full, return to the hub
-                routes[truck].append('HUB')  # Indicates a return to the hub
-                truck.num_packages = 0
-                current_location = 'HUB'
+                # If no valid package is available, exit the loop
+                break
 
     return routes
 
@@ -382,16 +403,19 @@ for package_id, package in packages_in_transit.items():
 print(restricted_pkgs)
 
 # Check delivery status of all packages
-for package_id, package in package_table.get_packages_in_state("in_transit").items():
+for package_id, package in package_table.get_packages_in_state("at_hub").items():
     print(f"Package {package_id} - Delivery Status: {package.delivery_status}")
+
+for package_id, package in package_table.get_packages_in_state("in_transit").items():
+    print(f"Package {package_id} - ETA: {package.eta}")
 
 for package_id, package in package_table.get_packages_in_state("delivered").items():
     print(f"Package {package_id} - Delivered at: {package.formatted_delivered_time()}")
 
-# Check detailed delivery status of packages in transit
-for package_id, package in package_table.get_packages_in_state("in_transit").items():
-    print(f"Package {package_id} - Delivery Status: {package.delivery_status}")
-    print(f"  Address: {package.address}, Deadline: {package.deadline}")
-    print(f"  Distance traveled: {truck1.miles_driven:.2f} miles")
-    print(f"  ETA: {package.eta}, Delivered Time: {package.formatted_delivered_time()}")
-    print()
+# # Check detailed delivery status of packages in transit
+# for package_id, package in package_table.get_packages_in_state("in_transit").items():
+#     print(f"Package {package_id} - Delivery Status: {package.delivery_status}")
+#     print(f"  Address: {package.address}, Deadline: {package.deadline}")
+#     print(f"  Distance traveled: {truck1.miles_driven:.2f} miles")
+#     print(f"  ETA: {package.eta}, Delivered Time: {package.formatted_delivered_time()}")
+#     print()
