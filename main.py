@@ -135,6 +135,10 @@ def apply_package_restrictions(packages, current_location, truck):
     restricted_packages = []
 
     for pkg in packages:
+        # The following packages must all be delivered together.
+        if pkg.package_id in [13, 15, 20, 16, 19, 14]:
+            if not (truck.max_capacity - truck.num_packages <= 6):
+                continue
         if pkg.package_id == 14:
             # Package 14 must be delivered with 15 and 19
             if not (package_table.get_package(15) and package_table.get_package(19)):
