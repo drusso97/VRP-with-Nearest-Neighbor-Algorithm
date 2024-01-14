@@ -293,6 +293,7 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
                 routes[truck].append('HUB')  # Indicates a return to the hub
                 truck.num_packages = 0
                 current_location = 'HUB'
+
             else:
                 # If no valid package is available, exit the loop
                 break
