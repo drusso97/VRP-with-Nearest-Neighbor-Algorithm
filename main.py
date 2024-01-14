@@ -305,7 +305,7 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
                 # If no valid package is available, exit the loop
                 break
 
-    return routes
+    #return routes
 
 
 # Define function to lookup package by ID
@@ -407,16 +407,16 @@ print("Total miles driven:", truck1.miles_driven + truck2.miles_driven)
 
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 
-num_restricted_pkgs = 0
-restricted_pkgs = []
-
-for package_id, package in packages_in_transit.items():
-    if package.special_notes != '':
-        num_restricted_pkgs += 1
-        print("Package:", package.package_id, package.special_notes, "-", num_restricted_pkgs)
-        restricted_pkgs.append(package.package_id)
-
-print(restricted_pkgs)
+# num_restricted_pkgs = 0
+# restricted_pkgs = []
+#
+# for package_id, package in packages_in_transit.items():
+#     if package.special_notes != '':
+#         num_restricted_pkgs += 1
+#         print("Package:", package.package_id, package.special_notes, "-", num_restricted_pkgs)
+#         restricted_pkgs.append(package.package_id)
+#
+# print(restricted_pkgs)
 
 # Check delivery status of all packages
 for package_id, package in package_table.get_packages_in_state("at_hub").items():
