@@ -26,7 +26,7 @@ class Package:
         self.deadline = deadline
         self.weight = weight
         self.special_notes = special_notes
-        self.delivery_truck = None
+        self.truck = None
         self.delivery_time = None
 
     def __str__(self):
@@ -273,7 +273,7 @@ def nearest_neighbor_algorithm(trucks, distances):
                 # Mark the package as delivered. Record delivery time.
                 package_table.add_package(nearest_package.package_id, nearest_package, state="delivered")
                 package_table.get_package(nearest_package.package_id, state="delivered").delivery_time = eta
-                package_table.get_package(nearest_package.package_id, state="delivered").delivery_truck = truck_string
+                package_table.get_package(nearest_package.package_id, state="delivered").truck = truck_string
                 package_table.remove_package(nearest_package.package_id, state="at_hub")
 
                 # Update the time.
@@ -340,7 +340,35 @@ def get_status_report():
     print("(3) - Print status of all packages between 12:03 p.m. and 1:12 p.m")
     print("(4) - Return\n")
 
-    return
+    user_input = int(input("Enter your selection: "))
+
+    def status_report(start, end):
+        for package in delivered_packages.values():
+            if start <= package.delivery_time <= end:
+                print(f"Package {package.package_id} was delivered by {package.truck} at {package.delivery_time}")
+            else:
+                print(
+                    f"Package {package.package_id} will be delivered by {package.truck} at {package.delivery_time}")
+
+    if user_input == 1:
+        start_time = datetime.combine(today, time(8, 35))
+        end_time = datetime.combine(today, time(9, 25))
+
+        status_report(start_time, end_time)
+    elif user_input == 2:
+        start_time = datetime.combine(today, time(9, 35))
+        end_time = datetime.combine(today, time(10, 25))
+
+        status_report(start_time, end_time)
+    elif user_input == 3:
+        start_time = datetime.combine(today, time(12, 3))
+        end_time = datetime.combine(today, time(1, 12))
+
+        status_report(start_time, end_time)
+    elif user_input == 4:
+        get_user_input()
+    else:
+        get_status_report()
 
 
 # Allows the user to interact with the program.
@@ -376,9 +404,9 @@ print("Miles driven for truck 1:", truck1.miles_driven)
 print("Miles driven for truck 2:", truck2.miles_driven)
 print("Total miles driven:", truck1.miles_driven + truck2.miles_driven)
 
-# get_user_input()
+get_user_input()
 
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 
 for package_id, package in package_table.get_packages_in_state("delivered").items():
-    print(f"Package {package_id} - Delivered at: {package.formatted_delivered_time()} by {package.delivery_truck}")
+    print(f"Package {package_id} - Delivered at: {package.formatted_delivered_time()} by {package.truck}")
