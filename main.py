@@ -15,10 +15,10 @@ today = datetime.today()
 current_time = starting_time
 current_datetime = datetime.combine(today, current_time)
 
+
 # Create package class.
 class Package:
-    def __init__(self, package_id, address, city, zip_code, deadline, weight, special_notes="",
-                 delivery_status="at the hub"):
+    def __init__(self, package_id, address, city, zip_code, deadline, weight, special_notes=""):
         self.package_id = package_id
         self.address = address
         self.city = city
@@ -26,18 +26,16 @@ class Package:
         self.deadline = deadline
         self.weight = weight
         self.special_notes = special_notes
-        self.delivery_status = delivery_status
         self.eta = "TBD"
         self.delivered_time = None
 
     def __str__(self):
         if self.deadline != 'EOD':
             return (f"Package: {self.package_id}, Address: {self.address} {self.city},{self.zip_code},"
-                    f" deadline: {self.deadline.strftime('%I:%M %p')}, weight: {self.weight},"
-                    f" status: {self.delivery_status})")
+                    f" deadline: {self.deadline.strftime('%I:%M %p')}, weight: {self.weight}")
         else:
             return (f"Package: {self.package_id}, Address: {self.address} {self.city},{self.zip_code},"
-                    f" deadline: {self.deadline}, weight: {self.weight}, status: {self.delivery_status})")
+                    f" deadline: {self.deadline}, weight: {self.weight}")
 
     # Method to format delivered_time with today's date
     def formatted_delivered_time(self):
@@ -260,7 +258,7 @@ def nearest_neighbor_algorithm(trucks, distances):
             if nearest_package is not None and truck.num_packages < truck.max_capacity:
                 # Load the package
                 routes[truck].append(nearest_package.address)
-                package_table.get_package(nearest_package.package_id, state="at_hub").delivery_status = "in transit"
+                package_table.get_package(nearest_package.package_id, state="at_hub")
                 truck.num_packages += 1
                 truck.miles_driven += distance_between(current_location, nearest_package.address)
 
