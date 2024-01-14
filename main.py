@@ -338,9 +338,9 @@ def get_status_report():
     print("(1) - Print status of all packages between 8:35 a.m. and 9:25 a.m")
     print("(2) - Print status of all packages between 9:35 a.m. and 10:25 a.m")
     print("(3) - Print status of all packages between 12:03 p.m. and 1:12 p.m")
-    print("(4) - Return\n")
+    print("(4) - Return to main menu\n")
 
-    user_input = int(input("Enter your selection: "))
+    user_input = int(input("Select an option: "))
 
     def status_report(start, end):
         for package in delivered_packages.values():
@@ -368,32 +368,32 @@ def get_status_report():
 
         status_report(start_time, end_time)
     elif user_input == 4:
-        get_user_input()
+        main_menu()
     else:
         get_status_report()
 
 
 # Allows the user to interact with the program.
-def get_user_input():
+def main_menu():
     print("Please choose from the following options:")
     print("(1) - Lookup package by ID")
     print("(2) - Print status of all of today's packages by time")
     print("(3) - Quit the program\n")
 
-    user_input = int(input("Enter your selection: "))
+    user_input = int(input("Select an option: "))
 
     if user_input == 1:
-        id_input = int(input("Enter package ID: "))
-        lookup_package(id_input)
-        get_user_input()
+        package_to_lookup = int(input("Enter package ID: "))
+        lookup_package(package_to_lookup)
+        main_menu()
     elif user_input == 2:
         get_status_report()
-        get_user_input()
+        main_menu()
     elif user_input == 3:
         print("Quitting program...")
         exit()
     else:
-        get_user_input()
+        main_menu()
 
 
 result = get_location_data()
@@ -406,7 +406,7 @@ print("Miles driven for truck 1:", truck1.miles_driven)
 print("Miles driven for truck 2:", truck2.miles_driven)
 print("Total miles driven:", truck1.miles_driven + truck2.miles_driven)
 
-get_user_input()
+main_menu()
 
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 
