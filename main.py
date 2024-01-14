@@ -200,14 +200,12 @@ def get_location_data():
     return distances, local_locations
 
 
-def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
+def nearest_neighbor_algorithm(trucks, distances):
     # Initialize empty route for each truck
     global current_time, current_datetime
     routes = {truck: [] for truck in trucks}
 
     delivered_packages = 0
-
-    # TODO: Find a way to track delivered packages and the time that they were delivered.
 
     # Define function to calculate the distance between two locations
     def distance_between(location1, location2):
