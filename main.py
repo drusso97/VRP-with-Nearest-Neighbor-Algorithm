@@ -26,8 +26,8 @@ class Package:
         self.deadline = deadline
         self.weight = weight
         self.special_notes = special_notes
-        self.eta = "TBD"
-        self.delivered_time = None
+        self.delivery_truck = None
+        self.delivery_time = None
 
     def __str__(self):
         if self.deadline != 'EOD':
@@ -39,8 +39,8 @@ class Package:
 
     # Method to format delivered_time with today's date
     def formatted_delivered_time(self):
-        if self.delivered_time:
-            return self.delivered_time.strftime("%I:%M %p")
+        if self.delivery_time:
+            return self.delivery_time.strftime("%I:%M %p")
         else:
             return "Not delivered yet"
 
@@ -63,7 +63,6 @@ class PackageHashTable:
     def remove_package(self, package_id, state="at_hub"):
         if package_id in self.packages_by_state[state]:
             del self.packages_by_state[state][package_id]
-            # print("Package", package_id, "was deleted from", state)
         else:
             print("Package", package_id, "is not in the", state, "table")
 
@@ -102,7 +101,6 @@ class Location:
 package_table = PackageHashTable()
 
 packages_at_hub = package_table.get_packages_in_state("at_hub")
-delivered_packages = package_table.get_packages_in_state("delivered")
 
 # WGUPS has three trucks available
 truck1 = Truck()
@@ -113,7 +111,6 @@ trucks = [truck1, truck2, truck3]
 
 
 # Define function to parse csv file and create package objects.
-# The address is stored in the same format as the location objects.
 def get_package_data():
     with open("files/WGUPS_package_file.csv", "r", encoding='utf-8-sig') as package_file:
         reader_variable = csv.reader(package_file, delimiter=",")
@@ -246,6 +243,7 @@ def nearest_neighbor_algorithm(trucks, distances):
     for truck in trucks[:2]:
         # Start at the hub
         current_location = 'HUB'
+        truck_string = "Truck 1" if trucks.index(truck) == 0 else "Truck 2"
 
         # While there are packages remaining.
         while True:
@@ -272,17 +270,13 @@ def nearest_neighbor_algorithm(trucks, distances):
                       f"Miles traveled: {truck.miles_driven:.2f},",
                       f"Packages delivered: {delivered_packages + 1}")
 
-                # Mark the package as loaded
+                # Mark the package as delivered. Record delivery time.
                 package_table.add_package(nearest_package.package_id, nearest_package, state="delivered")
+                package_table.get_package(nearest_package.package_id, state="delivered").delivery_time = eta
+                package_table.get_package(nearest_package.package_id, state="delivered").delivery_truck = truck_string
                 package_table.remove_package(nearest_package.package_id, state="at_hub")
 
-                # Record the eta
-                package_table.get_package(nearest_package.package_id,
-                                          state="delivered").eta = eta
-                package_table.get_package(nearest_package.package_id,
-                                          state="delivered").delivered_time = eta
-
-                # Update the time
+                # Update the time.
                 if eta >= current_datetime:
                     current_datetime = eta
 
@@ -302,7 +296,10 @@ def nearest_neighbor_algorithm(trucks, distances):
                 break
 
 
-# Define function to lookup package by ID
+delivered_packages = package_table.get_packages_in_state("delivered")
+
+
+# Lookup a package by ID and print its status.
 def lookup_package(package_id):
     package_to_lookup = None
 
@@ -322,12 +319,12 @@ def lookup_package(package_id):
         else:
             print("Deadline:", package_to_lookup.deadline)
         print("Weight:", package_to_lookup.weight + "KG")
-        print("Package", package_id, "is", package_to_lookup.delivery_status, "due at", package_to_lookup.eta)
+        print("Package", package_id, "is due at", package_to_lookup.eta)
 
         # Display actual delivery time
         print("Actual Delivery Time:", package_to_lookup.formatted_delivered_time())
-        if package_to_lookup.eta != 'tbd':
-            estimated_delivery_time = starting_time + timedelta(hours=package_to_lookup.eta)
+        if package_to_lookup.delivery_time is not None:
+            estimated_delivery_time = package_to_lookup.delivery_time
             print("Estimated Delivery Time:", estimated_delivery_time)
 
         print()
@@ -335,52 +332,34 @@ def lookup_package(package_id):
         print("\nPackage not found. Please try another package ID.")
 
 
-def time_function():
-    # Enter a time. Format must be "00:00 AM/PM"
-    user_time = input("Enter current time (Format 12:00 AM/PM): ")
-    print("Status report for", user_time, )
-    print('...\n' * 3)
-    print("This feature has not been added yet\n")
-
-    # Print status of all packages at that time.
-    # Print status, ETA, truck.
+# Prints a status report of all packages at given time.
+def get_status_report():
+    print("Please choose from the following options:")
+    print("(1) - Print status of all packages between 8:35 a.m. and 9:25 a.m")
+    print("(2) - Print status of all packages between 9:35 a.m. and 10:25 a.m")
+    print("(3) - Print status of all packages between 12:03 p.m. and 1:12 p.m")
+    print("(4) - Return\n")
 
     return
 
 
-def set_departure_time():
-    for truck in trucks:
-        departure_time = input(f"Enter departure time for Truck {trucks.index(truck) + 1} (Format 12:00 AM/PM): ")
-        # Set the departure time for the truck
-        # You may want to store this information in the Truck class
-        print(f"Truck {trucks.index(truck) + 1} will depart at {departure_time}")
-
-
+# Allows the user to interact with the program.
 def get_user_input():
     print("Please choose from the following options:")
     print("(1) - Lookup package by ID")
-    print("(2) - Print status of all of today's packages by time - Does not work yet")
-    print("(3) - Enter departure time for trucks")
-    print("(4) - Quit the program\n")
+    print("(2) - Print status of all of today's packages by time")
+    print("(3) - Quit the program\n")
 
     user_input = int(input("Enter your selection: "))
 
-    # Returns the current status of the package if the package exists.
     if user_input == 1:
         id_input = int(input("Enter package ID: "))
         lookup_package(id_input)
         get_user_input()
-    # TODO: This will eventually return the status of all packages at any given user selected time
     elif user_input == 2:
-        print("This feature has not yet been added\n")
-        time_function()
+        get_status_report()
         get_user_input()
-    # TODO: Not sure if this will end up getting used. Will change the departure time of the trucks.
     elif user_input == 3:
-        set_departure_time()
-        get_user_input()
-    # Quits the program
-    elif user_input == 4:
         print("Quitting program...")
         exit()
     else:
@@ -401,9 +380,5 @@ print("Total miles driven:", truck1.miles_driven + truck2.miles_driven)
 
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 
-# Check delivery status of all packages
-# for package_id, package in package_table.get_packages_in_state("at_hub").items():
-#     print(f"Package {package_id} - Delivery Status: {package.delivery_status}")
-
 for package_id, package in package_table.get_packages_in_state("delivered").items():
-    print(f"Package {package_id} - Delivered at: {package.formatted_delivered_time()}")
+    print(f"Package {package_id} - Delivered at: {package.formatted_delivered_time()} by {package.delivery_truck}")
