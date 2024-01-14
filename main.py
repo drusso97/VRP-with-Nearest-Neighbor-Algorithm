@@ -221,17 +221,29 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
             return float('inf')  # or any other appropriate value for missing distances
 
     # Define function to get the nearest package for a given location and truck
-    def get_nearest_package(current_location, remaining_packages, truck):
+    def get_nearest_package(current_location, packages_at_hub, truck):
 
-        valid_packages = [pkg for pkg in remaining_packages if truck.num_packages + 1 <= truck.max_capacity]
+        remaining_packages = [pkg for pkg in packages_at_hub]
 
         # Apply restrictions for specific packages
-        valid_packages = apply_package_restrictions(valid_packages, truck)
+        remaining_packages = apply_package_restrictions(remaining_packages, truck)
 
-        if not valid_packages:
-            return None  # No valid packages available
+        # Deliver packages with a hard deadline first
+        priority_packages = [pkg for pkg in remaining_packages if pkg.deadline != 'EOD']
 
-        return min(valid_packages, key=lambda pkg: distance_between(current_location, pkg.address))
+        # Packages without a deadline
+        remaining_packages = [pkg for pkg in remaining_packages if pkg not in priority_packages]
+
+        while priority_packages:
+            return min(priority_packages, key=lambda pkg: distance_between(current_location, pkg.address))
+
+        if not priority_packages:
+            while remaining_packages:
+                return min(remaining_packages, key=lambda pkg: distance_between(current_location, pkg.address))
+
+        # There are no packages remaining. Return none.
+        if not priority_packages or remaining_packages:
+            return None
 
     # Start at the hub
     # TODO: We want to make sure two of the trucks are utilized.
