@@ -152,7 +152,7 @@ def apply_package_restrictions(packages, truck):
             if truck != truck2:
                 continue
         elif pkg.package_id == 9:
-            # Package 9 has a wrong address listed
+            # Package 9 has a wrong address listed. To be corrected at 10:20 AM
             if current_datetime < datetime.combine(datetime.today(), time(10, 20)):
                 continue
             else:
@@ -196,11 +196,6 @@ def get_location_data():
 
         # Set distances from each location to itself as 0
         distances[current_location][current_location] = 0.0
-
-    # print("Locations:", local_locations)
-    # print("Distances:")
-    # for location, dist_dict in distances.items():
-    #     print(f"{location}: {dist_dict}")
 
     return distances, local_locations
 
