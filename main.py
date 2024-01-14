@@ -221,9 +221,9 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
             return float('inf')  # or any other appropriate value for missing distances
 
     # Define function to get the nearest package for a given location and truck
-    def get_nearest_package(current_location, packages_at_hub, truck):
+    def get_nearest_package(current_location, packages, truck):
 
-        remaining_packages = [pkg for pkg in packages_at_hub]
+        remaining_packages = [pkg for pkg in packages]
 
         # Apply restrictions for specific packages
         remaining_packages = apply_package_restrictions(remaining_packages, truck)
@@ -237,7 +237,8 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
         while priority_packages:
             return min(priority_packages, key=lambda pkg: distance_between(current_location, pkg.address))
 
-        if not priority_packages:
+        # There are no priority packages remaining
+        else:
             while remaining_packages:
                 return min(remaining_packages, key=lambda pkg: distance_between(current_location, pkg.address))
 
@@ -252,6 +253,7 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
     for truck in trucks[:2]:
         current_location = 'HUB'
 
+        # While there are packages remaining.
         while True:
             nearest_package = get_nearest_package(
                 current_location,
@@ -259,7 +261,7 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
                 truck
             )
 
-            if nearest_package is not None:
+            if nearest_package is not None and truck.num_packages < truck.max_capacity:
                 # Load the package
                 routes[truck].append(nearest_package.address)
                 package_table.get_package(nearest_package.package_id, state="at_hub").delivery_status = "in transit"
@@ -269,7 +271,7 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
                 # After loading the package in the nearest_neighbor_algorithm function
                 print(f"Truck {trucks.index(truck) + 1} - Loaded package {nearest_package.package_id}, "
                       f"Distance to package: {distance_between(current_location, nearest_package.address)} miles, "
-                      f"Total miles traveled: {truck.miles_driven:.2f} miles",
+                      f"Miles traveled: {truck.miles_driven:.2f},",
                       f"Packages delivered: {delivered_packages + 1}")
 
                 # Mark the package as loaded
@@ -286,11 +288,11 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
 
                 delivered_packages += 1
 
-                # Check if the truck is full and needs to return to the hub
-                if truck.num_packages >= truck.max_capacity:
-                    routes[truck].append('HUB')  # Indicates a return to the hub
-                    truck.num_packages = 0
-                    current_location = 'HUB'
+            # The truck is full and will have to return to the hub to get more packages.
+            elif truck.num_packages >= truck.max_capacity:
+                routes[truck].append('HUB')  # Indicates a return to the hub
+                truck.num_packages = 0
+                current_location = 'HUB'
             else:
                 # If no valid package is available, exit the loop
                 break
