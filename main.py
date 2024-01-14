@@ -246,11 +246,9 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
         if not priority_packages or remaining_packages:
             return None
 
-    # Start at the hub
-    # TODO: We want to make sure two of the trucks are utilized.
-    # TODO: Track miles and ensure that the miles traveled do not exceed 140 miles between the two trucks.
-    # There is no good reason to use the third truck since there are only two drivers.
+    # Not using the third truck since there are only two drivers.
     for truck in trucks[:2]:
+        # Start at the hub
         current_location = 'HUB'
 
         # While there are packages remaining.
@@ -299,8 +297,6 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
             else:
                 # If no valid package is available, exit the loop
                 break
-
-    #return routes
 
 
 # Define function to lookup package by ID
@@ -418,7 +414,7 @@ for package_id, package in package_table.get_packages_in_state("at_hub").items()
     print(f"Package {package_id} - Delivery Status: {package.delivery_status}")
 
 for package_id, package in package_table.get_packages_in_state("in_transit").items():
-    print(f"Package {package_id} - ETA: {package.eta}")
+    print(f"Package {package_id} - ETA: {package.eta} - Deadline: {package.deadline}")
 
 for package_id, package in package_table.get_packages_in_state("delivered").items():
     print(f"Package {package_id} - Delivered at: {package.formatted_delivered_time()}")
