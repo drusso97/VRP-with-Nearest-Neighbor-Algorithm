@@ -262,20 +262,27 @@ def nearest_neighbor_algorithm(trucks, distances):
                 truck.num_packages += 1
                 truck.miles_driven += distance_between(current_location, nearest_package.address)
 
-                # After loading the package in the nearest_neighbor_algorithm function
-                print(f"Truck {trucks.index(truck) + 1} - Loaded package {nearest_package.package_id}, "
+                # Record delivery eta
+                eta = truck.departure_time + timedelta(hours=truck.miles_driven / truck.speed)
+
+                # Print information showing that package was delivered.
+                print(f"Truck {trucks.index(truck) + 1} - Delivered package {nearest_package.package_id},"
+                      f" at {eta.strftime('%I:%M %p')}. "
                       f"Distance to package: {distance_between(current_location, nearest_package.address)} miles, "
                       f"Miles traveled: {truck.miles_driven:.2f},",
                       f"Packages delivered: {delivered_packages + 1}")
 
                 # Mark the package as loaded
-                package_table.add_package(nearest_package.package_id, nearest_package, state="in_transit")
+                package_table.add_package(nearest_package.package_id, nearest_package, state="delivered")
                 package_table.remove_package(nearest_package.package_id, state="at_hub")
 
                 # Record the eta
-                eta = truck.departure_time + timedelta(hours=truck.miles_driven / truck.speed)
                 package_table.get_package(nearest_package.package_id,
-                                          state="in_transit").eta = eta
+                                          state="delivered").eta = eta
+                package_table.get_package(nearest_package.package_id,
+                                          state="delivered").delivered_time = eta
+
+                # Update the time
                 if eta >= current_datetime:
                     current_datetime = eta
 
@@ -394,31 +401,9 @@ print("Total miles driven:", truck1.miles_driven + truck2.miles_driven)
 
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 
-# num_restricted_pkgs = 0
-# restricted_pkgs = []
-#
-# for package_id, package in packages_in_transit.items():
-#     if package.special_notes != '':
-#         num_restricted_pkgs += 1
-#         print("Package:", package.package_id, package.special_notes, "-", num_restricted_pkgs)
-#         restricted_pkgs.append(package.package_id)
-#
-# print(restricted_pkgs)
-
 # Check delivery status of all packages
-for package_id, package in package_table.get_packages_in_state("at_hub").items():
-    print(f"Package {package_id} - Delivery Status: {package.delivery_status}")
-
-for package_id, package in package_table.get_packages_in_state("in_transit").items():
-    print(f"Package {package_id} - ETA: {package.eta} - Deadline: {package.deadline}")
+# for package_id, package in package_table.get_packages_in_state("at_hub").items():
+#     print(f"Package {package_id} - Delivery Status: {package.delivery_status}")
 
 for package_id, package in package_table.get_packages_in_state("delivered").items():
     print(f"Package {package_id} - Delivered at: {package.formatted_delivered_time()}")
-
-# # Check detailed delivery status of packages in transit
-# for package_id, package in package_table.get_packages_in_state("in_transit").items():
-#     print(f"Package {package_id} - Delivery Status: {package.delivery_status}")
-#     print(f"  Address: {package.address}, Deadline: {package.deadline}")
-#     print(f"  Distance traveled: {truck1.miles_driven:.2f} miles")
-#     print(f"  ETA: {package.eta}, Delivered Time: {package.formatted_delivered_time()}")
-#     print()
