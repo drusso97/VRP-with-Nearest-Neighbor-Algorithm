@@ -153,7 +153,7 @@ def apply_package_restrictions(packages, truck):
                 continue
         elif pkg.package_id == 9:
             # Package 9 has a wrong address listed
-            if current_datetime <= datetime.combine(datetime.today(), time(10, 20)):
+            if current_datetime < datetime.combine(datetime.today(), time(10, 20)):
                 continue
             else:
                 pkg.address = "410 S State St, 84111"
@@ -229,17 +229,16 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
     # Define function to get the nearest package for a given location and truck
     def get_nearest_package(current_location, packages, truck):
 
-        remaining_packages = [pkg for pkg in packages]
-
         # Apply restrictions for specific packages
-        remaining_packages = apply_package_restrictions(remaining_packages, truck)
+        all_packages = apply_package_restrictions(packages, truck)
 
         # Deliver packages with a hard deadline first
-        priority_packages = [pkg for pkg in remaining_packages if pkg.deadline != 'EOD']
+        priority_packages = [pkg for pkg in all_packages if pkg.deadline != 'EOD']
 
         # Packages without a deadline
-        remaining_packages = [pkg for pkg in remaining_packages if pkg not in priority_packages]
+        remaining_packages = [pkg for pkg in all_packages if pkg not in priority_packages]
 
+        # Deliver priority packages first
         while priority_packages:
             return min(priority_packages, key=lambda pkg: distance_between(current_location, pkg.address))
 
