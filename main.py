@@ -131,8 +131,9 @@ def get_package_data():
             package_table.add_package(package_id, new_package, state="at_hub")
 
 
-def apply_package_restrictions(packages, current_location, truck):
+def apply_package_restrictions(packages, truck):
     restricted_packages = []
+    priority_packages = []
 
     for pkg in packages:
         # The following packages must all be delivered together.
@@ -221,10 +222,11 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
 
     # Define function to get the nearest package for a given location and truck
     def get_nearest_package(current_location, remaining_packages, truck):
+
         valid_packages = [pkg for pkg in remaining_packages if truck.num_packages + 1 <= truck.max_capacity]
 
         # Apply restrictions for specific packages
-        valid_packages = apply_package_restrictions(valid_packages, current_location, truck)
+        valid_packages = apply_package_restrictions(valid_packages, truck)
 
         if not valid_packages:
             return None  # No valid packages available
@@ -238,7 +240,7 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
     for truck in trucks[:2]:
         current_location = 'HUB'
 
-        while True:  # Infinite loop
+        while True:
             nearest_package = get_nearest_package(
                 current_location,
                 package_table.get_packages_in_state("at_hub").values(),
