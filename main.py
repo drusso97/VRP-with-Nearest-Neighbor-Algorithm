@@ -10,6 +10,10 @@
 import csv
 from datetime import datetime, time, timedelta
 
+starting_time = time(8, 00)
+today = datetime.today()
+current_time = starting_time
+current_datetime = datetime.combine(today, current_time)
 
 # Create package class.
 class Package:
@@ -133,16 +137,15 @@ def get_package_data():
 
 def apply_package_restrictions(packages, truck):
     restricted_packages = []
-    priority_packages = []
 
     for pkg in packages:
         # The following packages must all be delivered together.
         if pkg.package_id in [13, 14, 15, 16, 19, 20]:
             if not (truck.max_capacity - truck.num_packages >= 6):
                 continue
-        elif pkg.package_id == 25 or pkg.package_id == 6 or pkg.package_id == 28 or pkg.package_id == 32:
+        elif pkg.package_id in [25, 6, 28, 32]:
             # Packages 25, 6, 28, and 32 are delayed and should not be loaded until 9:05 am
-            if datetime.now().time() < time(9, 5):
+            if current_datetime < datetime.combine(today, time(9, 5)):
                 continue
         elif pkg.package_id in [36, 18, 38, 3]:
             # Packages 36, 18, 38, and 3 can only be on truck 2
@@ -150,8 +153,10 @@ def apply_package_restrictions(packages, truck):
                 continue
         elif pkg.package_id == 9:
             # Package 9 has a wrong address listed
-            if truck.departure_time >= datetime.combine(datetime.today(), time(10, 20)):
-                pkg.address = "410 S State St"
+            if current_datetime <= datetime.combine(datetime.today(), time(10, 20)):
+                continue
+            else:
+                pkg.address = "410 S State St, 84111"
 
         # If the package passed all restrictions, add it to the list
         restricted_packages.append(pkg)
@@ -202,6 +207,7 @@ def get_location_data():
 
 def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
     # Initialize empty route for each truck
+    global current_time, current_datetime
     routes = {truck: [] for truck in trucks}
 
     delivered_packages = 0
@@ -282,6 +288,8 @@ def nearest_neighbor_algorithm(trucks, distances, max_total_miles=140.0):
                 eta = truck.departure_time + timedelta(hours=truck.miles_driven / truck.speed)
                 package_table.get_package(nearest_package.package_id,
                                           state="in_transit").eta = eta
+                if eta >= current_datetime:
+                    current_datetime = eta
 
                 # Update the current location
                 current_location = nearest_package.address
