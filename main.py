@@ -345,10 +345,12 @@ def get_status_report():
     def status_report(start, end):
         for package in delivered_packages.values():
             if start <= package.delivery_time <= end:
-                print(f"Package {package.package_id} was delivered by {package.truck} at {package.delivery_time}")
+                print(f"Package {package.package_id} was delivered by {package.truck}"
+                      f" at {package.formatted_delivered_time()}")
             else:
                 print(
-                    f"Package {package.package_id} will be delivered by {package.truck} at {package.delivery_time}")
+                    f"Package {package.package_id} will be delivered by {package.truck}"
+                    f" at {package.formatted_delivered_time()}")
 
     if user_input == 1:
         start_time = datetime.combine(today, time(8, 35))
