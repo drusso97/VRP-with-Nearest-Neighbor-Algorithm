@@ -134,11 +134,7 @@ def apply_package_restrictions(packages, truck):
     restricted_packages = []
 
     for pkg in packages:
-        # The following packages must all be delivered together.
-        if pkg.package_id in [13, 14, 15, 16, 19, 20]:
-            if not (truck.max_capacity - truck.num_packages >= 6):
-                continue
-        elif pkg.package_id in [25, 6, 28, 32]:
+        if pkg.package_id in [25, 6, 28, 32]:
             # Packages 25, 6, 28, and 32 are delayed and should not be loaded until 9:05 am
             if current_datetime < datetime.combine(today, time(9, 5)):
                 continue
@@ -220,6 +216,9 @@ def nearest_neighbor_algorithm(trucks, distances):
         # Apply restrictions for specific packages
         all_packages = apply_package_restrictions(packages, truck)
 
+        # The following packages must all be delivered together.
+        grouped_packages = [pkg for pkg in all_packages if pkg.package_id in [13, 14, 15, 16, 19, 20]]
+
         # Deliver packages with a hard deadline first
         priority_packages = [pkg for pkg in all_packages if pkg.deadline != 'EOD']
 
@@ -253,7 +252,7 @@ def nearest_neighbor_algorithm(trucks, distances):
                 truck
             )
 
-            if nearest_package is not None and truck.num_packages < truck.max_capacity:
+            if nearest_package is not None and truck.num_packages < truck.max_capacity and truck.miles_driven <= 50:
                 # Load the package
                 routes[truck].append(nearest_package.address)
                 package_table.get_package(nearest_package.package_id, state="at_hub")
