@@ -344,7 +344,7 @@ def get_status_report():
 
     def status_report(start, end):
         for package in delivered_packages.values():
-            if start <= package.delivery_time <= end:
+            if package.delivery_time <= end:
                 print(f"Package {package.package_id} was delivered by {package.truck}"
                       f" at {package.formatted_delivered_time()}")
             else:
@@ -356,16 +356,19 @@ def get_status_report():
         start_time = datetime.combine(today, time(8, 35))
         end_time = datetime.combine(today, time(9, 25))
 
+        print("Showing status of all packages between 8:35 a.m. and 9:25 a.m\n")
         status_report(start_time, end_time)
     elif user_input == 2:
         start_time = datetime.combine(today, time(9, 35))
         end_time = datetime.combine(today, time(10, 25))
 
+        print("Showing status of all packages between 9:35 a.m. and 10:25 a.m\n")
         status_report(start_time, end_time)
     elif user_input == 3:
         start_time = datetime.combine(today, time(12, 3))
-        end_time = datetime.combine(today, time(1, 12))
+        end_time = datetime.combine(today, time(13, 12))
 
+        print("Showing status of all packages between 12:03 p.m. and 1:12 p.m\n")
         status_report(start_time, end_time)
     elif user_input == 4:
         main_menu()
@@ -406,9 +409,9 @@ print("Miles driven for truck 1:", truck1.miles_driven)
 print("Miles driven for truck 2:", truck2.miles_driven)
 print("Total miles driven:", truck1.miles_driven + truck2.miles_driven)
 
-main_menu()
-
 packages_in_transit = package_table.get_packages_in_state("in_transit")
+
+main_menu()
 
 for package_id, package in package_table.get_packages_in_state("delivered").items():
     print(f"Package {package_id} - Delivered at: {package.formatted_delivered_time()} by {package.truck}")
