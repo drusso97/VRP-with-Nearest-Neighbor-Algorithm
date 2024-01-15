@@ -216,14 +216,17 @@ def nearest_neighbor_algorithm(trucks, distances):
         # Apply restrictions for specific packages
         all_packages = apply_package_restrictions(packages, truck)
 
-        # The following packages must all be delivered together.
-        grouped_packages = [pkg for pkg in all_packages if pkg.package_id in [13, 14, 15, 16, 19, 20]]
-
         # Deliver packages with a hard deadline first
         priority_packages = [pkg for pkg in all_packages if pkg.deadline != 'EOD']
 
+        # The following packages must all be delivered together.
+        grouped_packages = [pkg for pkg in all_packages if pkg.package_id in [13, 14, 15, 16, 19, 20] and pkg not in priority_packages]
+
         # Packages without a deadline
         remaining_packages = [pkg for pkg in all_packages if pkg not in priority_packages]
+
+        # Define the order of precedence for the packages
+        package_queue = [priority_packages, grouped_packages, remaining_packages]
 
         # Deliver priority packages first
         while priority_packages:
