@@ -333,7 +333,7 @@ def lookup_package(package_id):
 
 
 # Prints a status report of all packages at given time.
-def get_status_report():
+def get_status_reports():
     print("Please choose from the following options:")
     print("(1) - Print status of all packages between 8:35 a.m. and 9:25 a.m")
     print("(2) - Print status of all packages between 9:35 a.m. and 10:25 a.m")
@@ -343,14 +343,14 @@ def get_status_report():
     user_input = int(input("Select an option: "))
 
     def status_report(start, end):
-        for package in delivered_packages.values():
-            if package.delivery_time <= end:
-                print(f"Package {package.package_id} was delivered by {package.truck}"
-                      f" at {package.formatted_delivered_time()}")
+        for pkg in delivered_packages.values():
+            if pkg.delivery_time <= end:
+                print(f"Package {pkg.package_id} was delivered by {pkg.truck}"
+                      f" at {pkg.formatted_delivered_time()}")
             else:
                 print(
-                    f"Package {package.package_id} will be delivered by {package.truck}"
-                    f" at {package.formatted_delivered_time()}")
+                    f"Package {pkg.package_id} will be delivered by {pkg.truck}"
+                    f" at {pkg.formatted_delivered_time()}")
 
     if user_input == 1:
         start_time = datetime.combine(today, time(8, 35))
@@ -373,7 +373,7 @@ def get_status_report():
     elif user_input == 4:
         main_menu()
     else:
-        get_status_report()
+        get_status_reports()
 
 
 # Allows the user to interact with the program.
@@ -390,7 +390,7 @@ def main_menu():
         lookup_package(package_to_lookup)
         main_menu()
     elif user_input == 2:
-        get_status_report()
+        get_status_reports()
         main_menu()
     elif user_input == 3:
         print("Quitting program...")
