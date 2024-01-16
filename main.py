@@ -397,6 +397,7 @@ def main_menu():
     user_input = int(input("Select an option: "))
 
     if user_input == 1:
+        user_time = input("Enter time (format - 12:00 AM/PM) : ")
         package_to_lookup = int(input("Enter package ID: "))
         lookup_package(package_to_lookup)
         main_menu()
@@ -422,7 +423,7 @@ print("Total miles driven:", truck1.miles_driven + truck2.miles_driven)
 
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 
-# main_menu()
+main_menu()
 
-for package_id, package in package_table.get_packages_in_state("delivered").items():
-    print(f"Package {package_id} - Loaded on to {package.truck} at: {package.loaded_time}")
+# for package_id, package in package_table.get_packages_in_state("delivered").items():
+#     print(f"Package {package_id} - Loaded on to {package.truck} at: {package.loaded_time}")
