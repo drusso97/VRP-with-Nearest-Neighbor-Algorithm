@@ -48,42 +48,37 @@ class Package:
 # Create hash table to store packages. Can store/access packages by delivery status as well.
 class PackageHashTable:
     def __init__(self):
-        self.packages_by_state = {
+        self.packages_by_status = {
             "at_hub": {},
             "in_transit": {},
             "delivered": {}
         }
 
-    def add_package(self, package_id, package, state="at_hub"):
-        self.packages_by_state[state][package_id] = package
+    def add_package(self, package_id, package, status="at_hub"):
+        self.packages_by_status[status][package_id] = package
 
-    def get_package(self, package_id, state="at_hub"):
-        return self.packages_by_state[state].get(package_id)
+    def get_package(self, package_id, status="at_hub"):
+        return self.packages_by_status[status].get(package_id)
 
-    def remove_package(self, package_id, state="at_hub"):
-        if package_id in self.packages_by_state[state]:
-            del self.packages_by_state[state][package_id]
+    def remove_package(self, package_id, status="at_hub"):
+        if package_id in self.packages_by_status[status]:
+            del self.packages_by_status[status][package_id]
         else:
-            print("Package", package_id, "is not in the", state, "table")
+            print("Package", package_id, "is not in the", status, "table")
 
-    def get_packages_in_state(self, state="at_hub"):
-        return self.packages_by_state[state]
+    def get_packages_in_state(self, status="at_hub"):
+        return self.packages_by_status[status]
 
 
 # Create truck class
 class Truck:
-    def __init__(self, max_capacity=16, speed=18.0, miles_driven=0.0, departure_time_str='08:00 AM'):
+    def __init__(self, max_capacity=16, speed=18.0, miles_driven=0.0,
+                 departure_time=datetime.combine(today, time(8, 0))):
         self.max_capacity = max_capacity
         self.num_packages = 0
         self.speed = speed
         self.miles_driven = miles_driven
-
-        # Remove 'AM' or 'PM' from departure_time_str
-        departure_time_str = departure_time_str.replace('AM', '').replace('PM', '')
-
-        # Include today's date in the departure time
-        today = datetime.today()
-        self.departure_time = datetime(today.year, today.month, today.day, *map(int, departure_time_str.split(':')))
+        self.departure_time = departure_time
 
     def __str__(self):
         return (f"Truck(max_capacity={self.max_capacity}, num_packages={self.num_packages}, speed={self.speed},"
@@ -127,7 +122,7 @@ def get_package_data():
             weight = row[6]
             special_notes = row[7]
             new_package = Package(package_id, address, city, zip_code, deadline, weight, special_notes)
-            package_table.add_package(package_id, new_package, state="at_hub")
+            package_table.add_package(package_id, new_package, status="at_hub")
 
 
 def apply_package_restrictions(packages, truck):
@@ -149,7 +144,7 @@ def apply_package_restrictions(packages, truck):
             else:
                 pkg.address = "410 S State St, 84111"
 
-        # If the package passed all restrictions, add it to the list
+        # Add the package to the list
         restricted_packages.append(pkg)
 
     return restricted_packages
@@ -222,12 +217,13 @@ def nearest_neighbor_algorithm(trucks, distances):
         # The following packages must all be delivered together. This works now.
         grouped_packages = [pkg for pkg in all_packages if pkg.package_id in [13, 14, 15, 16, 19, 20]]
 
-        # Combine the two lists together.
+        # Combine the two lists together. This might not be the ideal way to do this, but I was struggling to figure
+        # out how to force the grouped packages to be loaded together.
         for pkg in grouped_packages:
             if pkg not in priority_packages:
                 priority_packages.append(pkg)
 
-        # Packages without a deadline
+        # Packages without a hard deadline
         remaining_packages = [pkg for pkg in all_packages if pkg not in priority_packages]
 
         # Deliver priority packages first
@@ -257,10 +253,11 @@ def nearest_neighbor_algorithm(trucks, distances):
                 truck
             )
 
+            # 50 is an arbitrary limit. I just wanted to make sure both trucks were utilized to trim off some miles.
             if nearest_package is not None and truck.num_packages < truck.max_capacity and truck.miles_driven <= 50:
                 # Load the package
                 routes[truck].append(nearest_package.address)
-                package_table.get_package(nearest_package.package_id, state="at_hub")
+                package_table.get_package(nearest_package.package_id, status="at_hub")
                 truck.num_packages += 1
                 truck.miles_driven += distance_between(current_location, nearest_package.address)
 
@@ -275,10 +272,10 @@ def nearest_neighbor_algorithm(trucks, distances):
                       f"Packages delivered: {delivered_packages + 1}")
 
                 # Mark the package as delivered. Record delivery time.
-                package_table.add_package(nearest_package.package_id, nearest_package, state="delivered")
-                package_table.get_package(nearest_package.package_id, state="delivered").delivery_time = eta
-                package_table.get_package(nearest_package.package_id, state="delivered").truck = truck_string
-                package_table.remove_package(nearest_package.package_id, state="at_hub")
+                package_table.add_package(nearest_package.package_id, nearest_package, status="delivered")
+                package_table.get_package(nearest_package.package_id, status="delivered").delivery_time = eta
+                package_table.get_package(nearest_package.package_id, status="delivered").truck = truck_string
+                package_table.remove_package(nearest_package.package_id, status="at_hub")
 
                 # Update the time.
                 if eta >= current_datetime:
@@ -307,12 +304,12 @@ delivered_packages = package_table.get_packages_in_state("delivered")
 def lookup_package(package_id):
     package_to_lookup = None
 
-    if package_table.get_package(package_id, state="at_hub") is not None:
-        package_to_lookup = package_table.get_package(package_id, state="at_hub")
-    elif package_table.get_package(package_id, state="in_transit") is not None:
-        package_to_lookup = package_table.get_package(package_id, state="in_transit")
-    elif package_table.get_package(package_id, state="delivered") is not None:
-        package_to_lookup = package_table.get_package(package_id, state="delivered")
+    if package_table.get_package(package_id, status="at_hub") is not None:
+        package_to_lookup = package_table.get_package(package_id, status="at_hub")
+    elif package_table.get_package(package_id, status="in_transit") is not None:
+        package_to_lookup = package_table.get_package(package_id, status="in_transit")
+    elif package_table.get_package(package_id, status="delivered") is not None:
+        package_to_lookup = package_table.get_package(package_id, status="delivered")
 
     if package_to_lookup is not None:
         # Display package details
