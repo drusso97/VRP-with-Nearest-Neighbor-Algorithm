@@ -314,7 +314,7 @@ def lookup_package(package_id, time):
     # Check if the package exists.
     statuses_to_check = ["at_hub", "in_transit", "delivered"]
     pkg = next((package_table.get_package(package_id, status) for status in statuses_to_check if
-                              package_table.get_package(package_id, status) is not None), None)
+                package_table.get_package(package_id, status) is not None), None)
 
     if pkg is not None:
 
@@ -323,9 +323,10 @@ def lookup_package(package_id, time):
 
         # Display package details
         print(f"\nPackage: {package_id}\n"
-              f"{pkg.address.split(',')[0].strip()}, {pkg.city}, {pkg.zip_code}\n"
+              f"{pkg.address.split(',')[0].strip()}\n{pkg.city}, {pkg.zip_code}\n"
               f"Deadline: {deadline}\nWeight: {pkg.weight}KG")
 
+        # Check the package status.
         if time < pkg.loaded_time:
             print(f"Package {package_id} is currently at the hub, expected to arrive by {pkg.deadline}")
         elif pkg.loaded_time <= time < pkg.delivery_time:
