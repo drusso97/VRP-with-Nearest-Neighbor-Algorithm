@@ -313,12 +313,10 @@ delivered_packages = package_table.get_packages_in_state("delivered")
 def lookup_package(package_id, time):
     package_to_lookup = None
 
-    if package_table.get_package(package_id, status="at_hub") is not None:
-        package_to_lookup = package_table.get_package(package_id, status="at_hub")
-    elif package_table.get_package(package_id, status="in_transit") is not None:
-        package_to_lookup = package_table.get_package(package_id, status="in_transit")
-    elif package_table.get_package(package_id, status="delivered") is not None:
-        package_to_lookup = package_table.get_package(package_id, status="delivered")
+    # Check if the package exists.
+    statuses_to_check = ["at_hub", "in_transit", "delivered"]
+    package_to_lookup = next((package_table.get_package(package_id, status) for status in statuses_to_check if
+                              package_table.get_package(package_id, status) is not None), None)
 
     if package_to_lookup is not None:
         # Display package details
@@ -390,10 +388,24 @@ def get_status_reports():
 # Allows the user to interact with the program.
 def main_menu():
 
-    time_input = input("\nPlease enter the time - (format - HH:MM) : ")
-    hour, min = [int(i) for i in time_input.split(":")]
-    time_input = datetime.combine(today, time(hour, min))
+    time_input = None
 
+    valid_time = False
+
+    while not valid_time:
+        try:
+            time_input = input("\nPlease enter the time - (format - HH:MM) : ")
+            hour, min = [int(i) for i in time_input.split(":")]
+
+            # Check if the input has both hour and minute values
+            if len(time_input.split(":")) != 2:
+                raise ValueError("Invalid time format")
+
+            time_input = datetime.combine(today, time(hour, min))
+            valid_time = True
+        except ValueError as e:
+            print(f"Error: {e}")
+            print("Please enter a valid time - (format - HH:MM)")
 
     print("\nPlease choose from the following options:")
     print("(1) - Lookup package by ID")
