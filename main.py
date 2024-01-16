@@ -27,6 +27,7 @@ class Package:
         self.weight = weight
         self.special_notes = special_notes
         self.truck = None
+        self.loaded_time = None
         self.delivery_time = None
 
     def __str__(self):
@@ -245,6 +246,8 @@ def nearest_neighbor_algorithm(trucks, distances):
         current_location = 'HUB'
         truck_string = "Truck 1" if trucks.index(truck) == 0 else "Truck 2"
 
+        loaded_time = datetime.combine(today, starting_time)
+
         # While there are packages remaining.
         while True:
             nearest_package = get_nearest_package(
@@ -271,10 +274,15 @@ def nearest_neighbor_algorithm(trucks, distances):
                       f"Miles traveled: {truck.miles_driven:.2f},",
                       f"Packages delivered: {delivered_packages + 1}")
 
-                # Mark the package as delivered. Record delivery time.
+                # Mark the package as delivered.
                 package_table.add_package(nearest_package.package_id, nearest_package, status="delivered")
-                package_table.get_package(nearest_package.package_id, status="delivered").delivery_time = eta
-                package_table.get_package(nearest_package.package_id, status="delivered").truck = truck_string
+
+                # Record attributes for the new package.
+                delivered_package = package_table.get_package(nearest_package.package_id, status="delivered")
+                delivered_package.delivery_time = eta
+                delivered_package.truck = truck_string
+                delivered_package.loaded_time = loaded_time
+
                 package_table.remove_package(nearest_package.package_id, status="at_hub")
 
                 # Update the time.
@@ -291,6 +299,7 @@ def nearest_neighbor_algorithm(trucks, distances):
                 routes[truck].append('HUB')  # Indicates a return to the hub
                 truck.num_packages = 0
                 current_location = 'HUB'
+                loaded_time = eta
 
             else:
                 # If no valid package is available, exit the loop
@@ -320,7 +329,8 @@ def lookup_package(package_id):
         else:
             print("Deadline:", package_to_lookup.deadline)
         print("Weight:", package_to_lookup.weight + "KG")
-        print("Package", package_id, "is due at", package_to_lookup.eta)
+        print("Package", package_id, "is due at", package_to_lookup.delivery_time)
+        print("Loaded at", package_to_lookup.loaded_time)
 
         # Display actual delivery time
         print("Actual Delivery Time:", package_to_lookup.formatted_delivered_time())
@@ -412,7 +422,7 @@ print("Total miles driven:", truck1.miles_driven + truck2.miles_driven)
 
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 
-main_menu()
+# main_menu()
 
 for package_id, package in package_table.get_packages_in_state("delivered").items():
-    print(f"Package {package_id} - Delivered at: {package.formatted_delivered_time()} by {package.truck}")
+    print(f"Package {package_id} - Loaded on to {package.truck} at: {package.loaded_time.strftime('%I:%M %p')}")
