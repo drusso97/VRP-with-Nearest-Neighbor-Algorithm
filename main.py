@@ -322,15 +322,17 @@ def lookup_package(package_id, time):
             pkg.deadline)
 
         # Display package details
-        print(f"\nPackage: {package_id}\n{pkg.address.split(',')[0].strip()}, "
-              f"\n{pkg.city}, {pkg.zip_code}")
-        print(f"Deadline: {deadline}")
-        print("Weight:", pkg.weight + "KG")
+        print(f"\nPackage: {package_id}\n"
+              f"{pkg.address.split(',')[0].strip()}, {pkg.city}, {pkg.zip_code}\n"
+              f"Deadline: {deadline}\nWeight: {pkg.weight}KG")
 
         if time < pkg.loaded_time:
             print(f"Package {package_id} is currently at the hub, expected to arrive by {pkg.deadline}")
-        elif time >= pkg.loaded_time:
-
+        elif pkg.loaded_time <= time < pkg.delivery_time:
+            print(f"Package {package_id} is currently in transit on {pkg.truck},"
+                  f" expected to arrive at {pkg.delivery_time.strftime('%I:%M %p')}")
+        else:
+            print(f"Package {package_id} was delivered by {pkg.truck} at {pkg.delivery_time.strftime('%I:%M %p')}")
 
     else:
         print("\nPackage not found. Please try another package ID.")
@@ -435,6 +437,3 @@ print("Total miles driven:", truck1.miles_driven + truck2.miles_driven)
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 
 main_menu()
-
-# for package_id, package in package_table.get_packages_in_state("delivered").items():
-#     print(f"Package {package_id} - Loaded on to {package.truck} at: {package.loaded_time}")
