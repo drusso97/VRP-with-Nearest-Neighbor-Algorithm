@@ -425,4 +425,4 @@ packages_in_transit = package_table.get_packages_in_state("in_transit")
 # main_menu()
 
 for package_id, package in package_table.get_packages_in_state("delivered").items():
-    print(f"Package {package_id} - Loaded on to {package.truck} at: {package.loaded_time.strftime('%I:%M %p')}")
+    print(f"Package {package_id} - Loaded on to {package.truck} at: {package.loaded_time}")
