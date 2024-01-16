@@ -18,10 +18,11 @@ current_datetime = datetime.combine(today, current_time)
 
 # Create package class.
 class Package:
-    def __init__(self, package_id, address, city, zip_code, deadline, weight, special_notes=""):
+    def __init__(self, package_id, address, city, state, zip_code, deadline, weight, special_notes=""):
         self.package_id = package_id
         self.address = address
         self.city = city
+        self.state = state
         self.zip_code = zip_code
         self.deadline = deadline
         self.weight = weight
@@ -114,6 +115,7 @@ def get_package_data():
             package_id = int(row[0])
             address = "{}, {}".format(row[1], row[4])
             city = row[2]
+            state = row[3]
             zip_code = row[4]
             deadline = row[5]
 
@@ -122,7 +124,7 @@ def get_package_data():
 
             weight = row[6]
             special_notes = row[7]
-            new_package = Package(package_id, address, city, zip_code, deadline, weight, special_notes)
+            new_package = Package(package_id, address, city, state, zip_code, deadline, weight, special_notes)
             package_table.add_package(package_id, new_package, status="at_hub")
 
 
@@ -323,12 +325,12 @@ def lookup_package(package_id, time):
 
         # Display package details
         print(f"\nPackage: {package_id}\n"
-              f"{pkg.address.split(',')[0].strip()}\n{pkg.city}, {pkg.zip_code}\n"
+              f"{pkg.address.split(',')[0].strip()}\n{pkg.city} {pkg.state}, {pkg.zip_code}\n"
               f"Deadline: {deadline}\nWeight: {pkg.weight}KG")
 
         # Check the package status.
         if time < pkg.loaded_time:
-            print(f"Package {package_id} is currently at the hub, expected to arrive by {pkg.deadline}")
+            print(f"Package {package_id} is currently at the hub, expected to arrive by {deadline}")
         elif pkg.loaded_time <= time < pkg.delivery_time:
             print(f"Package {package_id} is currently in transit on {pkg.truck},"
                   f" expected to arrive at {pkg.delivery_time.strftime('%I:%M %p')}")
@@ -391,7 +393,7 @@ def main_menu():
 
     while not valid_time:
         try:
-            time_input = input("\nPlease enter the time - (format - HH:MM) : ")
+            time_input = input("\nWelcome to WGUPS. Please enter the time to begin - (format - HH:MM) : ")
             hour, min = [int(i) for i in time_input.split(":")]
 
             # Check if the input has both hour and minute values
