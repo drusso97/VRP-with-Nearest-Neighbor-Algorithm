@@ -311,32 +311,27 @@ delivered_packages = package_table.get_packages_in_state("delivered")
 
 # Lookup a package by ID and print its status.
 def lookup_package(package_id, time):
-    package_to_lookup = None
-
     # Check if the package exists.
     statuses_to_check = ["at_hub", "in_transit", "delivered"]
-    package_to_lookup = next((package_table.get_package(package_id, status) for status in statuses_to_check if
+    pkg = next((package_table.get_package(package_id, status) for status in statuses_to_check if
                               package_table.get_package(package_id, status) is not None), None)
 
-    if package_to_lookup is not None:
+    if pkg is not None:
+
+        deadline = pkg.deadline.strftime('%I:%M %p') if pkg.deadline != 'EOD' else str(
+            pkg.deadline)
+
         # Display package details
-        print("\nAddress:", package_to_lookup.address,
-              package_to_lookup.city + ", " + package_to_lookup.zip_code)
-        if package_to_lookup.deadline != 'EOD':
-            print("Deadline:", package_to_lookup.deadline.strftime('%I:%M %p'))
-        else:
-            print("Deadline:", package_to_lookup.deadline)
-        print("Weight:", package_to_lookup.weight + "KG")
-        print("Package", package_id, "is due at", package_to_lookup.delivery_time)
-        print("Loaded at", package_to_lookup.loaded_time)
+        print(f"\nPackage: {package_id}\n{pkg.address.split(',')[0].strip()}, "
+              f"\n{pkg.city}, {pkg.zip_code}")
+        print(f"Deadline: {deadline}")
+        print("Weight:", pkg.weight + "KG")
 
-        # Display actual delivery time
-        print("Actual Delivery Time:", package_to_lookup.formatted_delivered_time())
-        if package_to_lookup.delivery_time is not None:
-            estimated_delivery_time = package_to_lookup.delivery_time
-            print("Estimated Delivery Time:", estimated_delivery_time)
+        if time < pkg.loaded_time:
+            print(f"Package {package_id} is currently at the hub, expected to arrive by {pkg.deadline}")
+        elif time >= pkg.loaded_time:
 
-        print()
+
     else:
         print("\nPackage not found. Please try another package ID.")
 
@@ -387,7 +382,6 @@ def get_status_reports():
 
 # Allows the user to interact with the program.
 def main_menu():
-
     time_input = None
 
     valid_time = False
