@@ -310,7 +310,7 @@ delivered_packages = package_table.get_packages_in_state("delivered")
 
 
 # Lookup a package by ID and print its status.
-def lookup_package(package_id):
+def lookup_package(package_id, time):
     package_to_lookup = None
 
     if package_table.get_package(package_id, status="at_hub") is not None:
@@ -389,22 +389,27 @@ def get_status_reports():
 
 # Allows the user to interact with the program.
 def main_menu():
-    print("Please choose from the following options:")
+
+    time_input = input("\nPlease enter the time - (format - HH:MM) : ")
+    hour, min = [int(i) for i in time_input.split(":")]
+    time_input = datetime.combine(today, time(hour, min))
+
+
+    print("\nPlease choose from the following options:")
     print("(1) - Lookup package by ID")
     print("(2) - Print status of all of today's packages by time")
     print("(3) - Quit the program\n")
 
-    user_input = int(input("Select an option: "))
+    user_selection = int(input("Select an option: "))
 
-    if user_input == 1:
-        user_time = input("Enter time (format - 12:00 AM/PM) : ")
+    if user_selection == 1:
         package_to_lookup = int(input("Enter package ID: "))
-        lookup_package(package_to_lookup)
+        lookup_package(package_to_lookup, time_input)
         main_menu()
-    elif user_input == 2:
+    elif user_selection == 2:
         get_status_reports()
         main_menu()
-    elif user_input == 3:
+    elif user_selection == 3:
         print("Quitting program...")
         exit()
     else:
