@@ -258,7 +258,7 @@ def nearest_neighbor_algorithm(trucks, distances):
                 truck
             )
 
-            # 50 is an arbitrary limit. I just wanted to make sure both trucks were utilized to trim off some miles.
+            # 50 miles is an arbitrary limit. I just want to make sure both trucks are utilized to trim off some miles.
             if nearest_package is not None and truck.num_packages < truck.max_capacity and truck.miles_driven <= 50:
                 # Load the package
                 routes[truck].append(nearest_package.address)
@@ -309,7 +309,13 @@ def nearest_neighbor_algorithm(trucks, distances):
                 loaded_time = eta
 
             else:
-                # If no valid package is available, exit the loop
+                # There are no packages remaining, return to the hub and break the loop.
+                routes[truck].append('HUB')  # Indicates a return to the hub
+                distance_to_hub = distance_between(current_location, 'HUB')
+                truck.miles_driven += distance_to_hub
+                eta = truck.departure_time + timedelta(hours=truck.miles_driven / truck.speed)
+                print(f"Route for {truck_string} completed - Returned to HUB at {eta.strftime('%I:%M %p')}"
+                      f" - Distance to hub: {distance_to_hub}, Miles traveled: {truck.miles_driven}")
                 break
 
 
