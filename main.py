@@ -189,6 +189,7 @@ def get_location_data():
 
     return distances, local_locations
 
+
 # This algorithm will continuously return the next nearest package while there are packages remaining.
 def nearest_neighbor_algorithm(trucks, distances):
     # Initialize empty route for each truck
