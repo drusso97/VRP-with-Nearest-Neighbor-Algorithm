@@ -81,6 +81,7 @@ class Truck:
         self.speed = speed
         self.miles_driven = miles_driven
         self.departure_time = departure_time
+        self.packages_delivered = 0
 
     def __str__(self):
         return (f"Truck(max_capacity={self.max_capacity}, num_packages={self.num_packages}, speed={self.speed},"
@@ -258,12 +259,13 @@ def nearest_neighbor_algorithm(trucks, distances):
                 truck
             )
 
-            # 50 miles is an arbitrary limit. I just want to make sure both trucks are utilized to trim off some miles.
-            if nearest_package is not None and truck.num_packages < truck.max_capacity and truck.miles_driven <= 50:
+            # I decided to evenly divide the packages between the two trucks to ensure both trucks were used
+            if nearest_package is not None and truck.num_packages < truck.max_capacity and truck.packages_delivered < 20:
                 # Load the package
                 routes[truck].append(nearest_package.address)
                 package_table.get_package(nearest_package.package_id, status="at_hub")
                 truck.num_packages += 1
+                truck.packages_delivered += 1
                 truck.miles_driven += distance_between(current_location, nearest_package.address)
 
                 # Record delivery eta
