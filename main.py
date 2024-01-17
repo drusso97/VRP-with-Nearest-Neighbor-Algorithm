@@ -59,10 +59,10 @@ class PackageHashTable:
     def add_package(self, package_id, package, status="at_hub"):
         self.packages_by_status[status][package_id] = package
 
-    def get_package(self, package_id, status="at_hub"):
+    def get_package(self, package_id, status):
         return self.packages_by_status[status].get(package_id)
 
-    def remove_package(self, package_id, status="at_hub"):
+    def remove_package(self, package_id, status):
         if package_id in self.packages_by_status[status]:
             del self.packages_by_status[status][package_id]
         else:
@@ -158,7 +158,7 @@ def apply_package_restrictions(packages, truck):
 get_package_data()
 
 
-# Define function to parse distance file and create location objects.
+# Parse distance file.
 def get_location_data():
     distances = {}
 
