@@ -86,7 +86,8 @@ packages_at_hub = package_table.get_packages_in_state("at_hub")
 
 # WGUPS has three trucks available
 truck1 = Truck()
-truck2 = Truck()
+# Truck 2 does not depart until 9:05am since some of the packages are delayed.
+truck2 = Truck(departure_time=datetime.combine(today, time(9, 5)))
 truck3 = Truck()
 
 trucks = [truck1, truck2, truck3]
@@ -156,18 +157,19 @@ def apply_package_restrictions(packages, truck):
     for pkg in packages:
         if pkg.package_id in [25, 6, 28, 32]:
             # Packages 25, 6, 28, and 32 are delayed and should not be loaded until 9:05 am
-            if current_datetime < datetime.combine(today, time(9, 5)):
+            # These packages technically don't need to be loaded on truck 2,
+            # but it solved the problem of them being delivered late.
+            if current_datetime < datetime.combine(today, time(9, 5)) or truck != truck2:
                 continue
         elif pkg.package_id in [36, 18, 38, 3]:
             # Packages 36, 18, 38, and 3 can only be on truck 2
             if truck != truck2:
                 continue
         elif pkg.package_id == 9:
+            pkg.address = "410 S State St, 84111"
             # Package 9 has a wrong address listed. To be corrected at 10:20 AM
             if current_datetime < datetime.combine(datetime.today(), time(10, 20)):
                 continue
-            else:
-                pkg.address = "410 S State St, 84111"
 
         # Add the package to the list
         restricted_packages.append(pkg)
@@ -246,7 +248,7 @@ def nearest_neighbor_algorithm(trucks, distances):
             )
 
             # I decided to divide the packages between the two trucks to ensure both trucks were used.
-            if nearest_package is not None and truck.num_packages < truck.max_capacity and truck.packages_delivered < 24:
+            if nearest_package is not None and truck.num_packages < truck.max_capacity and truck.packages_delivered < 20:
                 # Load the package
                 routes[truck].append(nearest_package.address)
                 package_table.get_package(nearest_package.package_id, status="at_hub")
