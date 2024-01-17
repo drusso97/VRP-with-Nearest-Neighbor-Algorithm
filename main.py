@@ -433,12 +433,12 @@ location_data = get_location_data()
 extracted_distances = location_data[0]  # Extract the distances dictionary
 extracted_locations = location_data[1]  # Extract the locations list
 
-print(nearest_neighbor_algorithm(trucks, extracted_distances))
+nearest_neighbor_algorithm(trucks, extracted_distances)
 
-print("Miles driven for truck 1:", round(truck1.miles_driven, 2))
+print("\nMiles driven for truck 1:", round(truck1.miles_driven, 2))
 print("Miles driven for truck 2:", round(truck2.miles_driven, 2))
-print("Total miles driven:", round(truck1.miles_driven + truck2.miles_driven, 2))
+print("Miles driven for truck 3:", round(truck3.miles_driven, 2))
+print("Total miles driven:", round(truck1.miles_driven + truck2.miles_driven + truck3.miles_driven, 2))
 
-packages_in_transit = package_table.get_packages_in_state("in_transit")
-
+# Launch main menu
 main_menu()
