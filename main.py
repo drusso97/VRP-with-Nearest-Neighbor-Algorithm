@@ -259,8 +259,8 @@ def nearest_neighbor_algorithm(trucks, distances):
                 truck
             )
 
-            # I decided to evenly divide the packages between the two trucks to ensure both trucks were used
-            if nearest_package is not None and truck.num_packages < truck.max_capacity and truck.packages_delivered < 20:
+            # I decided to divide the packages between the two trucks to ensure both trucks were used.
+            if nearest_package is not None and truck.num_packages < truck.max_capacity and truck.packages_delivered < 24:
                 # Load the package
                 routes[truck].append(nearest_package.address)
                 package_table.get_package(nearest_package.package_id, status="at_hub")
@@ -298,8 +298,8 @@ def nearest_neighbor_algorithm(trucks, distances):
 
                 delivered_packages += 1
 
-            # The truck is full and will have to return to the hub to get more packages.
-            elif truck.num_packages >= truck.max_capacity:
+            # The truck is full. Deliver packages, then return to hub to get more packages.
+            elif truck.num_packages >= truck.max_capacity and nearest_package is not None:
                 routes[truck].append('HUB')  # Indicates a return to the hub
                 truck.num_packages = 0
                 distance_to_hub = distance_between(current_location, 'HUB')
