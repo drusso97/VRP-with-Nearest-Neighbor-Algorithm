@@ -31,14 +31,6 @@ class Package:
         self.loaded_time = None
         self.delivery_time = None
 
-    def __str__(self):
-        if self.deadline != 'EOD':
-            return (f"Package: {self.package_id}, Address: {self.address} {self.city},{self.zip_code},"
-                    f" deadline: {self.deadline.strftime('%I:%M %p')}, weight: {self.weight}")
-        else:
-            return (f"Package: {self.package_id}, Address: {self.address} {self.city},{self.zip_code},"
-                    f" deadline: {self.deadline}, weight: {self.weight}")
-
     # Method to format delivered_time with today's date
     def formatted_delivered_time(self):
         if self.delivery_time:
@@ -56,19 +48,23 @@ class PackageHashTable:
             "delivered": {}
         }
 
+    # Add package to hash table
     def add_package(self, package_id, package, status="at_hub"):
         self.packages_by_status[status][package_id] = package
 
+    # Retrieve package from hash table.
     def get_package(self, package_id, status):
         return self.packages_by_status[status].get(package_id)
 
+    # Remove package from hash table.
     def remove_package(self, package_id, status):
         if package_id in self.packages_by_status[status]:
             del self.packages_by_status[status][package_id]
         else:
             print("Package", package_id, "is not in the", status, "table")
 
-    def get_packages_in_state(self, status="at_hub"):
+    # Returns a dictionary of all packages in a given status.
+    def get_packages_in_state(self, status):
         return self.packages_by_status[status]
 
 
@@ -82,18 +78,6 @@ class Truck:
         self.miles_driven = miles_driven
         self.departure_time = departure_time
         self.packages_delivered = 0
-
-    def __str__(self):
-        return (f"Truck(max_capacity={self.max_capacity}, num_packages={self.num_packages}, speed={self.speed},"
-                f" miles_driven={self.miles_driven})")
-
-
-# Create location class
-class Location:
-    def __init__(self, address, distances):
-        # Manipulate address into same format as package objects so the strings can be compared.
-        self.address = address
-        self.distances = distances
 
 
 package_table = PackageHashTable()
@@ -129,6 +113,7 @@ def get_package_data():
             package_table.add_package(package_id, new_package, status="at_hub")
 
 
+# Applies the package restrictions found in the package special notes.
 def apply_package_restrictions(packages, truck):
     restricted_packages = []
 
@@ -158,7 +143,7 @@ def apply_package_restrictions(packages, truck):
 get_package_data()
 
 
-# Parse distance file.
+# Parse distance csv file to get the distances between the different locations.
 def get_location_data():
     distances = {}
 
@@ -307,7 +292,7 @@ def nearest_neighbor_algorithm(trucks, distances):
                 truck.miles_driven += distance_to_hub
                 eta = truck.departure_time + timedelta(hours=truck.miles_driven / truck.speed)
                 print(f"{truck_string} - Returned to HUB at {eta.strftime('%I:%M %p')}"
-                      f" - Distance to hub: {distance_to_hub}, Miles traveled: {truck.miles_driven}")
+                      f" - Distance to hub: {distance_to_hub}, Miles traveled: {round(truck.miles_driven, 2)}")
                 current_location = 'HUB'
                 loaded_time = eta
 
@@ -318,7 +303,7 @@ def nearest_neighbor_algorithm(trucks, distances):
                 truck.miles_driven += distance_to_hub
                 eta = truck.departure_time + timedelta(hours=truck.miles_driven / truck.speed)
                 print(f"Route for {truck_string} completed - Returned to HUB at {eta.strftime('%I:%M %p')}"
-                      f" - Distance to hub: {distance_to_hub}, Miles traveled: {truck.miles_driven}")
+                      f" - Distance to hub: {distance_to_hub}, Miles traveled: {round(truck.miles_driven, 2)}")
                 break
 
 
@@ -441,15 +426,15 @@ def main_menu():
         main_menu()
 
 
-result = get_location_data()
-extracted_distances = result[0]  # Extract the distances dictionary
-extracted_locations = result[1]  # Extract the locations list
+location_data = get_location_data()
+extracted_distances = location_data[0]  # Extract the distances dictionary
+extracted_locations = location_data[1]  # Extract the locations list
 
 print(nearest_neighbor_algorithm(trucks, extracted_distances))
 
-print("Miles driven for truck 1:", truck1.miles_driven)
-print("Miles driven for truck 2:", truck2.miles_driven)
-print("Total miles driven:", truck1.miles_driven + truck2.miles_driven)
+print("Miles driven for truck 1:", round(truck1.miles_driven, 2))
+print("Miles driven for truck 2:", round(truck2.miles_driven, 2))
+print("Total miles driven:", round(truck1.miles_driven + truck2.miles_driven, 2))
 
 packages_in_transit = package_table.get_packages_in_state("in_transit")
 
