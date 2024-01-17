@@ -275,10 +275,6 @@ def nearest_neighbor_algorithm(trucks, distances):
 
                 package_table.remove_package(nearest_package.package_id, status="at_hub")
 
-                # Update the time.
-                if eta >= current_datetime:
-                    current_datetime = eta
-
                 # Update the current location
                 current_location = nearest_package.address
 
@@ -286,6 +282,11 @@ def nearest_neighbor_algorithm(trucks, distances):
 
             # The truck is full. Deliver packages, then return to hub to get more packages.
             elif truck.num_packages >= truck.max_capacity and nearest_package is not None:
+
+                # Update the time.
+                if eta >= current_datetime:
+                    current_datetime = eta
+
                 routes[truck].append('HUB')  # Indicates a return to the hub
                 truck.num_packages = 0
                 distance_to_hub = distance_between(current_location, 'HUB')
@@ -296,8 +297,8 @@ def nearest_neighbor_algorithm(trucks, distances):
                 current_location = 'HUB'
                 loaded_time = eta
 
+            # There are no packages remaining, return to the hub and break the loop.
             else:
-                # There are no packages remaining, return to the hub and break the loop.
                 routes[truck].append('HUB')  # Indicates a return to the hub
                 distance_to_hub = distance_between(current_location, 'HUB')
                 truck.miles_driven += distance_to_hub
