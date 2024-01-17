@@ -300,6 +300,11 @@ def nearest_neighbor_algorithm(trucks, distances):
             elif truck.num_packages >= truck.max_capacity:
                 routes[truck].append('HUB')  # Indicates a return to the hub
                 truck.num_packages = 0
+                distance_to_hub = distance_between(current_location, 'HUB')
+                truck.miles_driven += distance_to_hub
+                eta = truck.departure_time + timedelta(hours=truck.miles_driven / truck.speed)
+                print(f"{truck_string} - Returned to HUB at {eta.strftime('%I:%M %p')}"
+                      f" - Distance to hub: {distance_to_hub}, Miles traveled: {truck.miles_driven}")
                 current_location = 'HUB'
                 loaded_time = eta
 
