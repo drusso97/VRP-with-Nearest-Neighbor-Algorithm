@@ -113,32 +113,6 @@ def get_package_data():
             package_table.add_package(package_id, new_package, status="at_hub")
 
 
-# Applies the package restrictions found in the package special notes.
-def apply_package_restrictions(packages, truck):
-    restricted_packages = []
-
-    for pkg in packages:
-        if pkg.package_id in [25, 6, 28, 32]:
-            # Packages 25, 6, 28, and 32 are delayed and should not be loaded until 9:05 am
-            if current_datetime < datetime.combine(today, time(9, 5)):
-                continue
-        elif pkg.package_id in [36, 18, 38, 3]:
-            # Packages 36, 18, 38, and 3 can only be on truck 2
-            if truck != truck2:
-                continue
-        elif pkg.package_id == 9:
-            # Package 9 has a wrong address listed. To be corrected at 10:20 AM
-            if current_datetime < datetime.combine(datetime.today(), time(10, 20)):
-                continue
-            else:
-                pkg.address = "410 S State St, 84111"
-
-        # Add the package to the list
-        restricted_packages.append(pkg)
-
-    return restricted_packages
-
-
 # Fill the package hash table
 get_package_data()
 
@@ -173,6 +147,32 @@ def get_location_data():
         distances[current_location][current_location] = 0.0
 
     return distances, local_locations
+
+
+# Applies the package restrictions found in the package special notes.
+def apply_package_restrictions(packages, truck):
+    restricted_packages = []
+
+    for pkg in packages:
+        if pkg.package_id in [25, 6, 28, 32]:
+            # Packages 25, 6, 28, and 32 are delayed and should not be loaded until 9:05 am
+            if current_datetime < datetime.combine(today, time(9, 5)):
+                continue
+        elif pkg.package_id in [36, 18, 38, 3]:
+            # Packages 36, 18, 38, and 3 can only be on truck 2
+            if truck != truck2:
+                continue
+        elif pkg.package_id == 9:
+            # Package 9 has a wrong address listed. To be corrected at 10:20 AM
+            if current_datetime < datetime.combine(datetime.today(), time(10, 20)):
+                continue
+            else:
+                pkg.address = "410 S State St, 84111"
+
+        # Add the package to the list
+        restricted_packages.append(pkg)
+
+    return restricted_packages
 
 
 # This algorithm will continuously return the next nearest package while there are packages remaining.
