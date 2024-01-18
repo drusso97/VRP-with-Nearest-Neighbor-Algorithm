@@ -356,31 +356,27 @@ def get_status_reports():
 
     def status_report(start, end):
         for pkg in delivered_packages.values():
-            if pkg.delivery_time <= end:
-                print(f"Package {pkg.package_id} was delivered by {pkg.truck}"
-                      f" at {pkg.formatted_delivered_time()}")
-            else:
-                print(
-                    f"Package {pkg.package_id} will be delivered by {pkg.truck}"
-                    f" at {pkg.formatted_delivered_time()}")
+            if pkg.loaded_time <= start <= pkg.delivery_time <= end:
+                print(f"Package {pkg.package_id} is currently on {pkg.truck}"
+                      f", due at {pkg.formatted_delivered_time()}")
 
     if user_input == 1:
         start_time = datetime.combine(today, time(8, 35))
         end_time = datetime.combine(today, time(9, 25))
 
-        print("Showing status of all packages between 8:35 a.m. and 9:25 a.m\n")
+        print("Packages in transit between 8:35 a.m. and 9:25 a.m\n")
         status_report(start_time, end_time)
     elif user_input == 2:
         start_time = datetime.combine(today, time(9, 35))
         end_time = datetime.combine(today, time(10, 25))
 
-        print("Showing status of all packages between 9:35 a.m. and 10:25 a.m\n")
+        print("Packages in transit between 9:35 a.m. and 10:25 a.m\n")
         status_report(start_time, end_time)
     elif user_input == 3:
         start_time = datetime.combine(today, time(12, 3))
         end_time = datetime.combine(today, time(13, 12))
 
-        print("Showing status of all packages between 12:03 p.m. and 1:12 p.m\n")
+        print("Packages in transit between 12:03 p.m. and 1:12 p.m\n")
         status_report(start_time, end_time)
     elif user_input == 4:
         main_menu()
