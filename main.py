@@ -344,7 +344,7 @@ def lookup_package(package_id, time):
         print("\nPackage not found. Please try another package ID.")
 
 
-# Prints a status report of all packages at given time.
+# Prints all packages in transit between two user-selected times.
 def get_status_reports():
     print("Please choose from the following options:")
     print("(1) - Print status of all packages between 8:35 a.m. and 9:25 a.m")
@@ -364,19 +364,19 @@ def get_status_reports():
         start_time = datetime.combine(today, time(8, 35))
         end_time = datetime.combine(today, time(9, 25))
 
-        print("Packages in transit between 8:35 a.m. and 9:25 a.m\n")
+        print("\nPackages in transit between 8:35 a.m. and 9:25 a.m\n")
         status_report(start_time, end_time)
     elif user_input == 2:
         start_time = datetime.combine(today, time(9, 35))
         end_time = datetime.combine(today, time(10, 25))
 
-        print("Packages in transit between 9:35 a.m. and 10:25 a.m\n")
+        print("\nPackages in transit between 9:35 a.m. and 10:25 a.m\n")
         status_report(start_time, end_time)
     elif user_input == 3:
         start_time = datetime.combine(today, time(12, 3))
         end_time = datetime.combine(today, time(13, 12))
 
-        print("Packages in transit between 12:03 p.m. and 1:12 p.m\n")
+        print("\nPackages in transit between 12:03 p.m. and 1:12 p.m\n")
         status_report(start_time, end_time)
     elif user_input == 4:
         main_menu()
