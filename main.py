@@ -305,6 +305,7 @@ def nearest_neighbor_algorithm(trucks, distances):
                 distance_to_hub = distance_between(current_location, 'HUB')
                 truck.miles_driven += distance_to_hub
                 eta = truck.departure_time + timedelta(hours=truck.miles_driven / truck.speed)
+
                 print(f"Route for {truck_string} completed - Returned to HUB at {eta.strftime('%I:%M %p')}"
                       f" - Distance to hub: {distance_to_hub}, Miles traveled: {round(truck.miles_driven, 2)}")
                 break
@@ -389,26 +390,8 @@ def get_status_reports():
 
 # Allows the user to interact with the program.
 def main_menu():
-    time_input = None
 
-    valid_time = False
-
-    while not valid_time:
-        try:
-            time_input = input("\nWelcome to WGUPS. Please enter the time to begin - (format - HH:MM) : ")
-            hour, min = [int(i) for i in time_input.split(":")]
-
-            # Check if the input has both hour and minute values
-            if len(time_input.split(":")) != 2:
-                raise ValueError("Invalid time format")
-
-            time_input = datetime.combine(today, time(hour, min))
-            valid_time = True
-        except ValueError as e:
-            print(f"Error: {e}")
-            print("Please enter a valid time - (format - HH:MM)")
-
-    print("\nPlease choose from the following options:")
+    print("\nWelcome to WGUPS. Please choose from the following options:")
     print("(1) - Lookup package by ID")
     print("(2) - Print status of all of today's packages by time")
     print("(3) - Quit the program\n")
@@ -416,8 +399,28 @@ def main_menu():
     user_selection = int(input("Select an option: "))
 
     if user_selection == 1:
+        time_input = None
+        valid_time = False
+
+        while not valid_time:
+            try:
+                time_input = input("\nPlease enter the time to continue - (format - HH:MM) : ")
+                hour, minute = [int(i) for i in time_input.split(":")]
+
+                # Check if the input has both hour and minute values
+                if len(time_input.split(":")) != 2:
+                    raise ValueError("Invalid time format")
+
+                time_input = datetime.combine(today, time(hour, minute))
+                valid_time = True
+            except ValueError as e:
+                print(f"Error: {e}")
+                print("Please enter a valid time - (format - HH:MM)")
+
         package_to_lookup = int(input("Enter package ID: "))
+
         lookup_package(package_to_lookup, time_input)
+
         main_menu()
     elif user_selection == 2:
         get_status_reports()
@@ -429,10 +432,12 @@ def main_menu():
         main_menu()
 
 
+# Get location data.
 location_data = get_location_data()
 extracted_distances = location_data[0]  # Extract the distances dictionary
 extracted_locations = location_data[1]  # Extract the locations list
 
+# Run algorithm to deliver packages.
 nearest_neighbor_algorithm(trucks, extracted_distances)
 
 print("\nMiles driven for truck 1:", round(truck1.miles_driven, 2))
