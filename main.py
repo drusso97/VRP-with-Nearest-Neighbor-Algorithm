@@ -522,6 +522,7 @@ def main_menu():
         print("\nInput must be one of the following:")
         main_menu()
 
+
 # Get location data.
 location_data = get_location_data()
 extracted_distances = location_data[0]  # Extract the distances dictionary
