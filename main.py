@@ -168,7 +168,7 @@ truck1 = Truck()
 # Truck 2 does not depart until 9:05am since some of the packages are delayed.
 truck2 = Truck(departure_time=datetime.combine(today, time(9, 5)))
 
-# WGUPS has three trucks available but we will not use the third since there are only two drivers avaialable.
+# WGUPS has three trucks available, but we will not use the third since there are only two drivers available.
 truck3 = Truck()
 
 trucks = [truck1, truck2, truck3]
