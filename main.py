@@ -10,9 +10,8 @@
 import csv
 from datetime import datetime, time, timedelta
 
-starting_time = time(8, 00)
+current_time = time(8, 00)
 today = datetime.today()
-current_time = starting_time
 current_datetime = datetime.combine(today, current_time)
 
 
@@ -237,7 +236,7 @@ def nearest_neighbor_algorithm(trucks, distances):
         current_location = 'HUB'
         truck_string = "Truck 1" if trucks.index(truck) == 0 else "Truck 2"
 
-        loaded_time = datetime.combine(today, starting_time)
+        loaded_time = truck.departure_time
 
         # While there are packages remaining.
         while True:
@@ -313,6 +312,13 @@ def nearest_neighbor_algorithm(trucks, distances):
 
 delivered_packages = package_table.get_packages_in_state("delivered")
 
+# Prints the miles driven for each truck and the total miles between all the trucks.
+def get_miles_for_all_trucks():
+    total_miles = 0
+    for truck in trucks:
+        print(f"Miles driven for Truck {trucks.index(truck) + 1}: {truck.miles_driven}")
+        total_miles += truck.miles_driven
+    print(f"Miles driven by all trucks: {total_miles}")
 
 # Lookup a package by ID and print its status.
 def lookup_package(package_id, time):
@@ -390,7 +396,8 @@ def main_menu():
     print("\nWelcome to WGUPS. Please choose from the following options:")
     print("(1) - Lookup package by ID")
     print("(2) - Print status of all of today's packages by time")
-    print("(3) - Quit the program\n")
+    print("(3) - Print mileage driven by all trucks")
+    print("(4) - Quit the program\n")
 
     user_selection = int(input("Select an option: "))
 
@@ -422,6 +429,10 @@ def main_menu():
         print_packages_on_trucks()
         main_menu()
     elif user_selection == 3:
+        print("\nMiles driven for all trucks today.\n")
+        get_miles_for_all_trucks()
+        main_menu()
+    elif user_selection == 4:
         print("Quitting program...")
         exit()
     else:
@@ -436,10 +447,7 @@ extracted_locations = location_data[1]  # Extract the locations list
 # Run algorithm to deliver packages.
 nearest_neighbor_algorithm(trucks, extracted_distances)
 
-print("\nMiles driven for truck 1:", round(truck1.miles_driven, 2))
-print("Miles driven for truck 2:", round(truck2.miles_driven, 2))
-print("Miles driven for truck 3:", round(truck3.miles_driven, 2))
-print("Total miles driven:", round(truck1.miles_driven + truck2.miles_driven + truck3.miles_driven, 2))
+get_miles_for_all_trucks()
 
 # Launch main menu
 main_menu()
