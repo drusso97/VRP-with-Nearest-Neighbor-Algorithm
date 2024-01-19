@@ -39,27 +39,33 @@ class Package:
             return "Not delivered yet"
 
 
-# New version of our package table. I realized way too late that dictionaries are not allowed.
+# The Package Hash Table is implemented using linked lists.
 class PackageHashTable:
     def __init__(self, size=10):
         self.size = size
         self.buckets = [LinkedList() for _ in range(size)]
 
+    # The package ID is used as the key for the hash table. In our case, each package has a unique ID,
+    # so there is no risk of hash collisions
     def _hash_function(self, package_id):
         return package_id % self.size
 
+    # Adds a package to the hash table.
     def add_package(self, package):
         index = self._hash_function(package.package_id)
         self.buckets[index].insert(package)
 
+    # Returns a package from the hash table.
     def get_package(self, package_id):
         index = self._hash_function(package_id)
         return self.buckets[index].find(package_id)
 
+    # Removes a package from the hash table.
     def remove_package(self, package_id):
         index = self._hash_function(package_id)
         self.buckets[index].delete(package_id)
 
+    # Gets all packages in a given status, "at_hub", "in_transit", or "delivered".
     def get_packages_in_state(self, status):
         result = []
         for bucket in self.buckets:
@@ -70,26 +76,31 @@ class PackageHashTable:
                 current = current.next
         return result
 
+    # Changes the package status.
     def update_package_status(self, package_id, new_status):
         index = self._hash_function(package_id)
         self.buckets[index].update_status(package_id, new_status)
 
 
+# Our node class for the linked list.
 class Node:
     def __init__(self, package):
         self.package = package
         self.next = None
 
 
+# Our linked list class.
 class LinkedList:
     def __init__(self):
         self.head = None
 
+    # Insert a new node.
     def insert(self, package):
         new_node = Node(package)
         new_node.next = self.head
         self.head = new_node
 
+    # Find a node in the linked list.
     def find(self, package_id):
         current = self.head
         while current:
@@ -98,6 +109,7 @@ class LinkedList:
             current = current.next
         return None
 
+    # Delete a node from the linked list. Updates the head as necessary.
     def delete(self, package_id):
         current = self.head
         if current and current.package.package_id == package_id:
@@ -114,6 +126,7 @@ class LinkedList:
 
         prev.next = current.next
 
+    # Gets all packages in a given status, "at_hub", "in_transit", or "delivered".
     def find_by_status(self, status):
         result = []
         current = self.head
@@ -397,7 +410,7 @@ def lookup_package(package_id, time):
         deadline = pkg.deadline.strftime('%I:%M %p') if pkg.deadline != 'EOD' else str(
             pkg.deadline)
 
-        # Display package details
+        # Display package details.
         print(f"\nPackage: {package_id}\n"
               f"{pkg.address.split(',')[0].strip()}\n{pkg.city} {pkg.state}, {pkg.zip_code}\n"
               f"Deadline: {deadline}\nWeight: {pkg.weight}KG")
@@ -425,6 +438,8 @@ def print_packages_on_trucks():
 
     user_input = int(input("Select an option: "))
 
+    # Iterates through the delivered packages list and outputs all packages
+    # that were in transit during the interval specified.
     def print_packages(start_time, end_time):
         for pkg in package_table.get_packages_in_state("delivered"):
             if pkg.loaded_time <= start_time <= pkg.delivery_time <= end_time:
