@@ -478,45 +478,49 @@ def main_menu():
     print("(3) - Print mileage driven by all trucks")
     print("(4) - Quit the program\n")
 
-    user_selection = int(input("Select an option: "))
+    try:
+        user_selection = int(input("Select an option: "))
 
-    if user_selection == 1:
-        time_input = None
-        valid_time = False
+        if user_selection == 1:
+            time_input = None
+            valid_time = False
 
-        while not valid_time:
-            try:
-                time_input = input("\nPlease enter the time to continue - (format - HH:MM) : ")
-                hour, minute = [int(i) for i in time_input.split(":")]
+            while not valid_time:
+                try:
+                    time_input = input("\nPlease enter the time to continue - (format - HH:MM) : ")
+                    hour, minute = [int(i) for i in time_input.split(":")]
 
-                # Check if the input has both hour and minute values
-                if len(time_input.split(":")) != 2:
-                    raise ValueError("Invalid time format")
+                    # Check if the input has both hour and minute values
+                    if len(time_input.split(":")) != 2:
+                        raise ValueError("Invalid time format")
 
-                time_input = datetime.combine(today, time(hour, minute))
-                valid_time = True
-            except ValueError as e:
-                print(f"Error: {e}")
-                print("Please enter a valid time - (format - HH:MM)")
+                    time_input = datetime.combine(today, time(hour, minute))
+                    valid_time = True
+                except ValueError as e:
+                    print(f"Error: {e}")
+                    print("Please enter a valid time - (format - HH:MM)")
 
-        package_to_lookup = int(input("Enter package ID: "))
+            package_to_lookup = int(input("Enter package ID: "))
 
-        lookup_package(package_to_lookup, time_input)
+            lookup_package(package_to_lookup, time_input)
 
+            main_menu()
+        elif user_selection == 2:
+            print_packages_on_trucks()
+            main_menu()
+        elif user_selection == 3:
+            print("\nMiles driven for all trucks today.\n")
+            get_miles_for_all_trucks()
+            main_menu()
+        elif user_selection == 4:
+            print("Quitting program...")
+            exit()
+        else:
+            print("\nInput must be one of the following:")
+            main_menu()
+    except ValueError:
+        print("\nInput must be one of the following:")
         main_menu()
-    elif user_selection == 2:
-        print_packages_on_trucks()
-        main_menu()
-    elif user_selection == 3:
-        print("\nMiles driven for all trucks today.\n")
-        get_miles_for_all_trucks()
-        main_menu()
-    elif user_selection == 4:
-        print("Quitting program...")
-        exit()
-    else:
-        main_menu()
-
 
 # Get location data.
 location_data = get_location_data()
