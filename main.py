@@ -78,9 +78,10 @@ class Truck:
         self.departure_time = departure_time
         self.packages_delivered = 0
 
-
+# Initialize Package Table.
 package_table = PackageHashTable()
 
+# Get all of the packages currently at the hub.
 packages_at_hub = package_table.get_packages_in_state("at_hub")
 
 # WGUPS has three trucks available
