@@ -306,7 +306,7 @@ def nearest_neighbor_algorithm(trucks, distances):
                 eta = truck.departure_time + timedelta(hours=truck.miles_driven / truck.speed)
 
                 print(f"Route for {truck_string} completed - Returned to HUB at {eta.strftime('%I:%M %p')}"
-                      f" - Distance to hub: {distance_to_hub}, Miles traveled: {round(truck.miles_driven, 2)}")
+                      f" - Distance to hub: {distance_to_hub}, Miles traveled: {round(truck.miles_driven, 2)}\n")
                 break
 
 
