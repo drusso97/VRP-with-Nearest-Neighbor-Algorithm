@@ -29,6 +29,7 @@ class Package:
         self.truck = None
         self.loaded_time = None
         self.delivery_time = None
+        self.status = "at_hub"
 
     # Method to format delivered_time with today's date
     def formatted_delivered_time(self):
@@ -38,33 +39,102 @@ class Package:
             return "Not delivered yet"
 
 
-# Create hash table to store packages. Can store/access packages by delivery status as well.
+# New version of our package table. I realized way too late that dictionaries are not allowed.
 class PackageHashTable:
-    def __init__(self):
-        self.packages_by_status = {
-            "at_hub": {},
-            "in_transit": {},
-            "delivered": {}
-        }
+    def __init__(self, size=10):
+        self.size = size
+        self.buckets = [LinkedList() for _ in range(size)]
 
-    # Add package to hash table
-    def add_package(self, package_id, package, status="at_hub"):
-        self.packages_by_status[status][package_id] = package
+    def _hash_function(self, package_id):
+        return package_id % self.size
 
-    # Retrieve package from hash table.
-    def get_package(self, package_id, status):
-        return self.packages_by_status[status].get(package_id)
+    def add_package(self, package):
+        index = self._hash_function(package.package_id)
+        self.buckets[index].insert(package)
 
-    # Remove package from hash table.
-    def remove_package(self, package_id, status):
-        if package_id in self.packages_by_status[status]:
-            del self.packages_by_status[status][package_id]
-        else:
-            print("Package", package_id, "is not in the", status, "table")
+    def get_package(self, package_id):
+        index = self._hash_function(package_id)
+        return self.buckets[index].find(package_id)
 
-    # Returns a dictionary of all packages in a given status.
+    def remove_package(self, package_id):
+        index = self._hash_function(package_id)
+        self.buckets[index].delete(package_id)
+
     def get_packages_in_state(self, status):
-        return self.packages_by_status[status]
+        result = []
+        for bucket in self.buckets:
+            current = bucket.head
+            while current:
+                if current.package.status == status:
+                    result.append(current.package)
+                current = current.next
+        return result
+
+    def update_package_status(self, package_id, new_status):
+        index = self._hash_function(package_id)
+        self.buckets[index].update_status(package_id, new_status)
+
+
+class Node:
+    def __init__(self, package):
+        self.package = package
+        self.next = None
+
+
+class LinkedList:
+    def __init__(self):
+        self.head = None
+
+    def insert(self, package):
+        new_node = Node(package)
+        new_node.next = self.head
+        self.head = new_node
+
+    def find(self, package_id):
+        current = self.head
+        while current:
+            if current.package.package_id == package_id:
+                return current.package
+            current = current.next
+        return None
+
+    def delete(self, package_id):
+        current = self.head
+        if current and current.package.package_id == package_id:
+            self.head = current.next
+            return
+
+        prev = None
+        while current and current.package.package_id != package_id:
+            prev = current
+            current = current.next
+
+        if current is None:
+            return
+
+        prev.next = current.next
+
+    def find_by_status(self, status):
+        result = []
+        current = self.head
+        while current:
+            if current.package.status == status:
+                result.append(current.package)
+            current = current.next
+        return result
+
+    # Change package status.
+    def update_status(self, package_id, new_status):
+        current = self.head
+        while current:
+            if current.package.package_id == package_id:
+                current.package.status = new_status
+                return
+            current = current.next
+
+
+# Initialize Package List
+package_table = PackageHashTable()
 
 
 # Create truck class
@@ -78,16 +148,14 @@ class Truck:
         self.departure_time = departure_time
         self.packages_delivered = 0
 
-# Initialize Package Table.
-package_table = PackageHashTable()
-
-# Get all of the packages currently at the hub.
-packages_at_hub = package_table.get_packages_in_state("at_hub")
 
 # WGUPS has three trucks available
 truck1 = Truck()
+
 # Truck 2 does not depart until 9:05am since some of the packages are delayed.
 truck2 = Truck(departure_time=datetime.combine(today, time(9, 5)))
+
+# WGUPS has three trucks available but we will not use the third since there are only two drivers avaialable.
 truck3 = Truck()
 
 trucks = [truck1, truck2, truck3]
@@ -111,7 +179,7 @@ def get_package_data():
             weight = row[6]
             special_notes = row[7]
             new_package = Package(package_id, address, city, state, zip_code, deadline, weight, special_notes)
-            package_table.add_package(package_id, new_package, status="at_hub")
+            package_table.add_package(new_package)
 
 
 # Fill the package hash table
@@ -197,9 +265,7 @@ def nearest_neighbor_algorithm(trucks, distances):
             print(f"Distance between {location1} and {location2} not available.")
             return float('inf')  # or any other appropriate value for missing distances
 
-    # Define function to get the nearest package for a given location and truck
     def get_nearest_package(current_location, packages, truck):
-
         # Apply restrictions for specific packages
         all_packages = apply_package_restrictions(packages, truck)
 
@@ -220,16 +286,19 @@ def nearest_neighbor_algorithm(trucks, distances):
 
         # Deliver priority packages first
         while priority_packages:
-            return min(priority_packages, key=lambda pkg: distance_between(current_location, pkg.address))
+            pkg = min(priority_packages, key=lambda pkg: distance_between(current_location, pkg.address))
+            if pkg.status == "at_hub":
+                return pkg
 
         # There are no priority packages remaining
         else:
             while remaining_packages:
-                return min(remaining_packages, key=lambda pkg: distance_between(current_location, pkg.address))
+                pkg = min(remaining_packages, key=lambda pkg: distance_between(current_location, pkg.address))
+                if pkg.status == "at_hub":
+                    return pkg
 
         # There are no packages remaining. Return none.
-        if not priority_packages or remaining_packages:
-            return None
+        return None
 
     # Not using the third truck since there are only two drivers.
     for truck in trucks[:2]:
@@ -243,7 +312,7 @@ def nearest_neighbor_algorithm(trucks, distances):
         while True:
             nearest_package = get_nearest_package(
                 current_location,
-                package_table.get_packages_in_state("at_hub").values(),
+                package_table.get_packages_in_state("at_hub"),
                 truck
             )
 
@@ -251,7 +320,7 @@ def nearest_neighbor_algorithm(trucks, distances):
             if nearest_package is not None and truck.num_packages < truck.max_capacity and truck.packages_delivered < 20:
                 # Load the package
                 routes[truck].append(nearest_package.address)
-                package_table.get_package(nearest_package.package_id, status="at_hub")
+                package_table.get_package(nearest_package.package_id)
                 truck.num_packages += 1
                 truck.packages_delivered += 1
                 truck.miles_driven += distance_between(current_location, nearest_package.address)
@@ -267,15 +336,13 @@ def nearest_neighbor_algorithm(trucks, distances):
                       f"Packages delivered: {delivered_packages + 1}")
 
                 # Mark the package as delivered.
-                package_table.add_package(nearest_package.package_id, nearest_package, status="delivered")
+                package_table.update_package_status(nearest_package.package_id, "delivered")
 
                 # Record attributes for the new package.
-                delivered_package = package_table.get_package(nearest_package.package_id, status="delivered")
+                delivered_package = package_table.get_package(nearest_package.package_id)
                 delivered_package.delivery_time = eta
                 delivered_package.truck = truck_string
                 delivered_package.loaded_time = loaded_time
-
-                package_table.remove_package(nearest_package.package_id, status="at_hub")
 
                 # Update the current location
                 current_location = nearest_package.address
@@ -311,8 +378,6 @@ def nearest_neighbor_algorithm(trucks, distances):
                 break
 
 
-delivered_packages = package_table.get_packages_in_state("delivered")
-
 # Prints the miles driven for each truck and the total miles between all the trucks.
 def get_miles_for_all_trucks():
     total_miles = 0
@@ -321,12 +386,11 @@ def get_miles_for_all_trucks():
         total_miles += truck.miles_driven
     print(f"Miles driven by all trucks: {total_miles}")
 
+
 # Lookup a package by ID and print its status.
 def lookup_package(package_id, time):
     # Check if the package exists.
-    statuses_to_check = ["at_hub", "in_transit", "delivered"]
-    pkg = next((package_table.get_package(package_id, status) for status in statuses_to_check if
-                package_table.get_package(package_id, status) is not None), None)
+    pkg = package_table.get_package(package_id)
 
     if pkg is not None:
 
@@ -362,7 +426,7 @@ def print_packages_on_trucks():
     user_input = int(input("Select an option: "))
 
     def print_packages(start_time, end_time):
-        for pkg in delivered_packages.values():
+        for pkg in package_table.get_packages_in_state("delivered"):
             if pkg.loaded_time <= start_time <= pkg.delivery_time <= end_time:
                 print(f"Package {pkg.package_id} is currently on {pkg.truck}"
                       f", due at {pkg.formatted_delivered_time()}")
@@ -393,7 +457,6 @@ def print_packages_on_trucks():
 
 # Allows the user to interact with the program.
 def main_menu():
-
     print("\nWelcome to WGUPS. Please choose from the following options:")
     print("(1) - Lookup package by ID")
     print("(2) - Print status of all of today's packages by time")
@@ -444,6 +507,9 @@ def main_menu():
 location_data = get_location_data()
 extracted_distances = location_data[0]  # Extract the distances dictionary
 extracted_locations = location_data[1]  # Extract the locations list
+
+# Run algorithm to deliver packages.
+nearest_neighbor_algorithm(trucks, extracted_distances)
 
 # Run algorithm to deliver packages.
 nearest_neighbor_algorithm(trucks, extracted_distances)
