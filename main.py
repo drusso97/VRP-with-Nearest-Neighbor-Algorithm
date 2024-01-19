@@ -447,6 +447,7 @@ extracted_locations = location_data[1]  # Extract the locations list
 # Run algorithm to deliver packages.
 nearest_neighbor_algorithm(trucks, extracted_distances)
 
+# Output total miles driven
 get_miles_for_all_trucks()
 
 # Launch main menu
