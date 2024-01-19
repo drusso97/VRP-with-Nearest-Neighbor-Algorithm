@@ -345,7 +345,7 @@ def lookup_package(package_id, time):
 
 
 # Prints all packages in transit between two user-selected times.
-def get_status_reports():
+def print_packages_on_trucks():
     print("Please choose from the following options:")
     print("(1) - Print status of all packages between 8:35 a.m. and 9:25 a.m")
     print("(2) - Print status of all packages between 9:35 a.m. and 10:25 a.m")
@@ -354,9 +354,9 @@ def get_status_reports():
 
     user_input = int(input("Select an option: "))
 
-    def status_report(start, end):
+    def print_packages(start_time, end_time):
         for pkg in delivered_packages.values():
-            if pkg.loaded_time <= start <= pkg.delivery_time <= end:
+            if pkg.loaded_time <= start_time <= pkg.delivery_time <= end_time:
                 print(f"Package {pkg.package_id} is currently on {pkg.truck}"
                       f", due at {pkg.formatted_delivered_time()}")
 
@@ -365,23 +365,23 @@ def get_status_reports():
         end_time = datetime.combine(today, time(9, 25))
 
         print("\nPackages in transit between 8:35 a.m. and 9:25 a.m\n")
-        status_report(start_time, end_time)
+        print_packages(start_time, end_time)
     elif user_input == 2:
         start_time = datetime.combine(today, time(9, 35))
         end_time = datetime.combine(today, time(10, 25))
 
         print("\nPackages in transit between 9:35 a.m. and 10:25 a.m\n")
-        status_report(start_time, end_time)
+        print_packages(start_time, end_time)
     elif user_input == 3:
         start_time = datetime.combine(today, time(12, 3))
         end_time = datetime.combine(today, time(13, 12))
 
         print("\nPackages in transit between 12:03 p.m. and 1:12 p.m\n")
-        status_report(start_time, end_time)
+        print_packages(start_time, end_time)
     elif user_input == 4:
         main_menu()
     else:
-        get_status_reports()
+        print_packages_on_trucks()
 
 
 # Allows the user to interact with the program.
@@ -419,7 +419,7 @@ def main_menu():
 
         main_menu()
     elif user_selection == 2:
-        get_status_reports()
+        print_packages_on_trucks()
         main_menu()
     elif user_selection == 3:
         print("Quitting program...")
