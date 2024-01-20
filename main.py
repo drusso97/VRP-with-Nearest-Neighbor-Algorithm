@@ -171,7 +171,7 @@ truck2 = Truck(departure_time=datetime.combine(today, time(9, 5)))
 # WGUPS has three trucks available, but we will not use the third since there are only two drivers available.
 truck3 = Truck()
 
-trucks = [truck1, truck2, truck3]
+all_trucks = [truck1, truck2, truck3]
 
 
 # Define function to parse csv file and create package objects.
@@ -283,10 +283,10 @@ def nearest_neighbor_algorithm(trucks, distances):
         all_packages = apply_package_restrictions(packages, truck)
 
         # Deliver packages with a hard deadline first
-        priority_packages = [pkg for pkg in all_packages if pkg.deadline != 'EOD']
+        priority_packages = [package for package in all_packages if package.deadline != 'EOD']
 
         # The following packages must all be delivered together. This works now.
-        grouped_packages = [pkg for pkg in all_packages if pkg.package_id in [13, 14, 15, 16, 19, 20]]
+        grouped_packages = [package for package in all_packages if package.package_id in [13, 14, 15, 16, 19, 20]]
 
         # Combine the two lists together. This might not be the ideal way to do this, but I was struggling to figure
         # out how to force the grouped packages to be loaded together.
@@ -295,7 +295,7 @@ def nearest_neighbor_algorithm(trucks, distances):
                 priority_packages.append(package)
 
         # Packages without a hard deadline
-        remaining_packages = [pkg for pkg in all_packages if pkg not in priority_packages]
+        remaining_packages = [package for package in all_packages if package not in priority_packages]
 
         # Deliver priority packages first
         while priority_packages:
@@ -343,10 +343,10 @@ def nearest_neighbor_algorithm(trucks, distances):
 
                 # Print information showing that package was delivered.
                 print(f"Truck {trucks.index(truck) + 1} - Delivered package {nearest_package.package_id},"
-                      f" at {eta.strftime('%I:%M %p')}. "
+                      f" to {nearest_package.address} at {eta.strftime('%I:%M %p')}.\n"
                       f"Distance to package: {distance_between(current_location, nearest_package.address)} miles, "
                       f"Miles traveled: {truck.miles_driven:.2f},",
-                      f"Packages delivered: {delivered_packages + 1}")
+                      f"Packages delivered: {delivered_packages + 1}\n")
 
                 # Mark the package as delivered.
                 package_table.update_package_status(nearest_package.package_id, "delivered")
@@ -394,8 +394,8 @@ def nearest_neighbor_algorithm(trucks, distances):
 # Prints the miles driven for each truck and the total miles between all the trucks.
 def get_miles_for_all_trucks():
     total_miles = 0
-    for truck in trucks:
-        print(f"Miles driven for Truck {trucks.index(truck) + 1}: {truck.miles_driven}")
+    for truck in all_trucks:
+        print(f"Miles driven for Truck {all_trucks.index(truck) + 1}: {truck.miles_driven}")
         total_miles += truck.miles_driven
     print(f"Miles driven by all trucks: {total_miles}")
 
@@ -529,10 +529,10 @@ extracted_distances = location_data[0]  # Extract the distances dictionary
 extracted_locations = location_data[1]  # Extract the locations list
 
 # Run algorithm to deliver packages.
-nearest_neighbor_algorithm(trucks, extracted_distances)
+nearest_neighbor_algorithm(all_trucks, extracted_distances)
 
 # Run algorithm to deliver packages.
-nearest_neighbor_algorithm(trucks, extracted_distances)
+nearest_neighbor_algorithm(all_trucks, extracted_distances)
 
 # Output total miles driven
 get_miles_for_all_trucks()
