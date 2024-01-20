@@ -235,25 +235,25 @@ def get_location_data():
 def apply_package_restrictions(packages, truck):
     restricted_packages = []
 
-    for pkg in packages:
-        if pkg.package_id in [25, 6, 28, 32]:
+    for package in packages:
+        if package.package_id in [25, 6, 28, 32]:
             # Packages 25, 6, 28, and 32 are delayed and should not be loaded until 9:05 am
             # These packages technically don't need to be loaded on truck 2,
             # but it solved the problem of them being delivered late.
             if current_datetime < datetime.combine(today, time(9, 5)) or truck != truck2:
                 continue
-        elif pkg.package_id in [36, 18, 38, 3]:
+        elif package.package_id in [36, 18, 38, 3]:
             # Packages 36, 18, 38, and 3 can only be on truck 2
             if truck != truck2:
                 continue
-        elif pkg.package_id == 9:
-            pkg.address = "410 S State St, 84111"
+        elif package.package_id == 9:
+            package.address = "410 S State St, 84111"
             # Package 9 has a wrong address listed. To be corrected at 10:20 AM
             if current_datetime < datetime.combine(datetime.today(), time(10, 20)):
                 continue
 
         # Add the package to the list
-        restricted_packages.append(pkg)
+        restricted_packages.append(package)
 
     return restricted_packages
 
@@ -290,25 +290,25 @@ def nearest_neighbor_algorithm(trucks, distances):
 
         # Combine the two lists together. This might not be the ideal way to do this, but I was struggling to figure
         # out how to force the grouped packages to be loaded together.
-        for pkg in grouped_packages:
-            if pkg not in priority_packages:
-                priority_packages.append(pkg)
+        for package in grouped_packages:
+            if package not in priority_packages:
+                priority_packages.append(package)
 
         # Packages without a hard deadline
         remaining_packages = [pkg for pkg in all_packages if pkg not in priority_packages]
 
         # Deliver priority packages first
         while priority_packages:
-            pkg = min(priority_packages, key=lambda pkg: distance_between(current_location, pkg.address))
-            if pkg.status == "at_hub":
-                return pkg
+            package = min(priority_packages, key=lambda pkg: distance_between(current_location, pkg.address))
+            if package.status == "at_hub":
+                return package
 
         # There are no priority packages remaining
         else:
             while remaining_packages:
-                pkg = min(remaining_packages, key=lambda pkg: distance_between(current_location, pkg.address))
-                if pkg.status == "at_hub":
-                    return pkg
+                package = min(remaining_packages, key=lambda pkg: distance_between(current_location, pkg.address))
+                if package.status == "at_hub":
+                    return package
 
         # There are no packages remaining. Return none.
         return None
@@ -401,28 +401,28 @@ def get_miles_for_all_trucks():
 
 
 # Lookup a package by ID and print its status.
-def lookup_package(package_id, time):
+def lookup_package(package_id, lookup_time):
     # Check if the package exists.
-    pkg = package_table.get_package(package_id)
+    package = package_table.get_package(package_id)
 
-    if pkg is not None:
+    if package is not None:
 
-        deadline = pkg.deadline.strftime('%I:%M %p') if pkg.deadline != 'EOD' else str(
-            pkg.deadline)
+        deadline = package.deadline.strftime('%I:%M %p') if package.deadline != 'EOD' else str(
+            package.deadline)
 
         # Display package details.
         print(f"\nPackage: {package_id}\n"
-              f"{pkg.address.split(',')[0].strip()}\n{pkg.city} {pkg.state}, {pkg.zip_code}\n"
-              f"Deadline: {deadline}\nWeight: {pkg.weight}KG")
+              f"{package.address.split(',')[0].strip()}\n{package.city} {package.state}, {package.zip_code}\n"
+              f"Deadline: {deadline}\nWeight: {package.weight}KG")
 
         # Check the package status.
-        if time < pkg.loaded_time:
+        if lookup_time < package.loaded_time:
             print(f"Package {package_id} is currently at the hub, expected to arrive by {deadline}")
-        elif pkg.loaded_time <= time < pkg.delivery_time:
-            print(f"Package {package_id} is currently in transit on {pkg.truck},"
-                  f" expected to arrive at {pkg.delivery_time.strftime('%I:%M %p')}")
+        elif package.loaded_time <= lookup_time < package.delivery_time:
+            print(f"Package {package_id} is currently in transit on {package.truck},"
+                  f" expected to arrive at {package.delivery_time.strftime('%I:%M %p')}")
         else:
-            print(f"Package {package_id} was delivered by {pkg.truck} at {pkg.delivery_time.strftime('%I:%M %p')}")
+            print(f"Package {package_id} was delivered by {package.truck} at {package.delivery_time.strftime('%I:%M %p')}")
 
     else:
         print("\nPackage not found. Please try another package ID.")
