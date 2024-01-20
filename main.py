@@ -174,7 +174,7 @@ all_trucks = [truck1, truck2, truck3]
 
 
 # Define function to parse csv file and create package objects.
-def get_package_data():
+def parse_package_data():
     with open("files/WGUPS_package_file.csv", "r", encoding='utf-8-sig') as package_file:
         reader_variable = csv.reader(package_file, delimiter=",")
         for row in reader_variable:
@@ -195,11 +195,11 @@ def get_package_data():
 
 
 # Fill the package hash table
-get_package_data()
+parse_package_data()
 
 
 # Parse distance csv file to get the distances between the different locations.
-def get_location_data():
+def parse_location_data():
     distances = {}
 
     with open("files/distance_table.csv", "r", encoding='utf-8-sig') as distance_file:
@@ -277,6 +277,7 @@ def nearest_neighbor_algorithm(trucks, distances):
             print(f"Distance between {location1} and {location2} not available.")
             return float('inf')  # or any other appropriate value for missing distances
 
+    # Get the nearest package from the current location.
     def get_nearest_package(current_location, packages, truck):
         # Apply restrictions for specific packages
         all_packages = apply_package_restrictions(packages, truck)
@@ -438,10 +439,13 @@ def print_packages_on_trucks():
 
     user_input = int(input("Select an option: "))
 
+    delivered_packages = package_table.get_packages_in_state("delivered")
+    delivered_packages.sort(key=lambda package: package.delivery_time)
+
     # Iterates through the delivered packages list and outputs all packages
     # that were in transit during the interval specified.
     def print_packages(start_time, end_time):
-        for pkg in package_table.get_packages_in_state("delivered"):
+        for pkg in delivered_packages:
             if pkg.loaded_time <= start_time <= pkg.delivery_time <= end_time:
                 print(f"Package {pkg.package_id} is currently on {pkg.truck}"
                       f", due at {pkg.formatted_delivered_time()}")
@@ -524,7 +528,7 @@ def main_menu():
 
 
 # Get location data.
-location_data = get_location_data()
+location_data = parse_location_data()
 extracted_distances = location_data[0]  # Extract the distances dictionary
 extracted_locations = location_data[1]  # Extract the locations list
 
