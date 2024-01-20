@@ -39,6 +39,18 @@ class Package:
             return "Not delivered yet"
 
 
+# Create truck class
+class Truck:
+    def __init__(self, max_capacity=16, speed=18.0, miles_driven=0.0,
+                 departure_time=datetime.combine(today, time(8, 0))):
+        self.max_capacity = max_capacity
+        self.num_packages = 0
+        self.speed = speed
+        self.miles_driven = miles_driven
+        self.departure_time = departure_time
+        self.packages_delivered = 0
+
+
 # The Package Hash Table is implemented using linked lists.
 class PackageHashTable:
     def __init__(self, size=10):
@@ -148,19 +160,6 @@ class LinkedList:
 
 # Initialize Package List
 package_table = PackageHashTable()
-
-
-# Create truck class
-class Truck:
-    def __init__(self, max_capacity=16, speed=18.0, miles_driven=0.0,
-                 departure_time=datetime.combine(today, time(8, 0))):
-        self.max_capacity = max_capacity
-        self.num_packages = 0
-        self.speed = speed
-        self.miles_driven = miles_driven
-        self.departure_time = departure_time
-        self.packages_delivered = 0
-
 
 # WGUPS has three trucks available
 truck1 = Truck()
@@ -422,7 +421,8 @@ def lookup_package(package_id, lookup_time):
             print(f"Package {package_id} is currently in transit on {package.truck},"
                   f" expected to arrive at {package.delivery_time.strftime('%I:%M %p')}")
         else:
-            print(f"Package {package_id} was delivered by {package.truck} at {package.delivery_time.strftime('%I:%M %p')}")
+            print(
+                f"Package {package_id} was delivered by {package.truck} at {package.delivery_time.strftime('%I:%M %p')}")
 
     else:
         print("\nPackage not found. Please try another package ID.")
