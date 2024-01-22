@@ -39,6 +39,18 @@ class Package:
             return "Not delivered yet"
 
 
+# Create truck class
+class Truck:
+    def __init__(self, max_capacity=16, speed=18.0, miles_driven=0.0,
+                 departure_time=datetime.combine(today, time(8, 0))):
+        self.max_capacity = max_capacity
+        self.num_packages = 0
+        self.speed = speed
+        self.miles_driven = miles_driven
+        self.departure_time = departure_time
+        self.packages_delivered = 0
+
+
 # The Package Hash Table is implemented using linked lists.
 class PackageHashTable:
     def __init__(self, size=10):
@@ -149,19 +161,6 @@ class LinkedList:
 # Initialize Package List
 package_table = PackageHashTable()
 
-
-# Create truck class
-class Truck:
-    def __init__(self, max_capacity=16, speed=18.0, miles_driven=0.0,
-                 departure_time=datetime.combine(today, time(8, 0))):
-        self.max_capacity = max_capacity
-        self.num_packages = 0
-        self.speed = speed
-        self.miles_driven = miles_driven
-        self.departure_time = departure_time
-        self.packages_delivered = 0
-
-
 # WGUPS has three trucks available
 truck1 = Truck()
 
@@ -171,11 +170,11 @@ truck2 = Truck(departure_time=datetime.combine(today, time(9, 5)))
 # WGUPS has three trucks available, but we will not use the third since there are only two drivers available.
 truck3 = Truck()
 
-trucks = [truck1, truck2, truck3]
+all_trucks = [truck1, truck2, truck3]
 
 
 # Define function to parse csv file and create package objects.
-def get_package_data():
+def parse_package_data():
     with open("files/WGUPS_package_file.csv", "r", encoding='utf-8-sig') as package_file:
         reader_variable = csv.reader(package_file, delimiter=",")
         for row in reader_variable:
@@ -196,11 +195,11 @@ def get_package_data():
 
 
 # Fill the package hash table
-get_package_data()
+parse_package_data()
 
 
 # Parse distance csv file to get the distances between the different locations.
-def get_location_data():
+def parse_location_data():
     distances = {}
 
     with open("files/distance_table.csv", "r", encoding='utf-8-sig') as distance_file:
@@ -235,25 +234,25 @@ def get_location_data():
 def apply_package_restrictions(packages, truck):
     restricted_packages = []
 
-    for pkg in packages:
-        if pkg.package_id in [25, 6, 28, 32]:
+    for package in packages:
+        if package.package_id in [25, 6, 28, 32]:
             # Packages 25, 6, 28, and 32 are delayed and should not be loaded until 9:05 am
             # These packages technically don't need to be loaded on truck 2,
             # but it solved the problem of them being delivered late.
             if current_datetime < datetime.combine(today, time(9, 5)) or truck != truck2:
                 continue
-        elif pkg.package_id in [36, 18, 38, 3]:
+        elif package.package_id in [36, 18, 38, 3]:
             # Packages 36, 18, 38, and 3 can only be on truck 2
             if truck != truck2:
                 continue
-        elif pkg.package_id == 9:
-            pkg.address = "410 S State St, 84111"
+        elif package.package_id == 9:
+            package.address = "410 S State St, 84111"
             # Package 9 has a wrong address listed. To be corrected at 10:20 AM
             if current_datetime < datetime.combine(datetime.today(), time(10, 20)):
                 continue
 
         # Add the package to the list
-        restricted_packages.append(pkg)
+        restricted_packages.append(package)
 
     return restricted_packages
 
@@ -278,37 +277,38 @@ def nearest_neighbor_algorithm(trucks, distances):
             print(f"Distance between {location1} and {location2} not available.")
             return float('inf')  # or any other appropriate value for missing distances
 
+    # Get the nearest package from the current location.
     def get_nearest_package(current_location, packages, truck):
         # Apply restrictions for specific packages
         all_packages = apply_package_restrictions(packages, truck)
 
         # Deliver packages with a hard deadline first
-        priority_packages = [pkg for pkg in all_packages if pkg.deadline != 'EOD']
+        priority_packages = [package for package in all_packages if package.deadline != 'EOD']
 
         # The following packages must all be delivered together. This works now.
-        grouped_packages = [pkg for pkg in all_packages if pkg.package_id in [13, 14, 15, 16, 19, 20]]
+        grouped_packages = [package for package in all_packages if package.package_id in [13, 14, 15, 16, 19, 20]]
 
         # Combine the two lists together. This might not be the ideal way to do this, but I was struggling to figure
         # out how to force the grouped packages to be loaded together.
-        for pkg in grouped_packages:
-            if pkg not in priority_packages:
-                priority_packages.append(pkg)
+        for package in grouped_packages:
+            if package not in priority_packages:
+                priority_packages.append(package)
 
         # Packages without a hard deadline
-        remaining_packages = [pkg for pkg in all_packages if pkg not in priority_packages]
+        remaining_packages = [package for package in all_packages if package not in priority_packages]
 
         # Deliver priority packages first
         while priority_packages:
-            pkg = min(priority_packages, key=lambda pkg: distance_between(current_location, pkg.address))
-            if pkg.status == "at_hub":
-                return pkg
+            package = min(priority_packages, key=lambda pkg: distance_between(current_location, pkg.address))
+            if package.status == "at_hub":
+                return package
 
         # There are no priority packages remaining
         else:
             while remaining_packages:
-                pkg = min(remaining_packages, key=lambda pkg: distance_between(current_location, pkg.address))
-                if pkg.status == "at_hub":
-                    return pkg
+                package = min(remaining_packages, key=lambda pkg: distance_between(current_location, pkg.address))
+                if package.status == "at_hub":
+                    return package
 
         # There are no packages remaining. Return none.
         return None
@@ -343,10 +343,10 @@ def nearest_neighbor_algorithm(trucks, distances):
 
                 # Print information showing that package was delivered.
                 print(f"Truck {trucks.index(truck) + 1} - Delivered package {nearest_package.package_id},"
-                      f" at {eta.strftime('%I:%M %p')}. "
+                      f" to {nearest_package.address} at {eta.strftime('%I:%M %p')}.\n"
                       f"Distance to package: {distance_between(current_location, nearest_package.address)} miles, "
                       f"Miles traveled: {truck.miles_driven:.2f},",
-                      f"Packages delivered: {delivered_packages + 1}")
+                      f"Packages delivered: {delivered_packages + 1}\n")
 
                 # Mark the package as delivered.
                 package_table.update_package_status(nearest_package.package_id, "delivered")
@@ -394,35 +394,36 @@ def nearest_neighbor_algorithm(trucks, distances):
 # Prints the miles driven for each truck and the total miles between all the trucks.
 def get_miles_for_all_trucks():
     total_miles = 0
-    for truck in trucks:
-        print(f"Miles driven for Truck {trucks.index(truck) + 1}: {truck.miles_driven}")
+    for truck in all_trucks:
+        print(f"Miles driven for Truck {all_trucks.index(truck) + 1}: {truck.miles_driven}")
         total_miles += truck.miles_driven
     print(f"Miles driven by all trucks: {total_miles}")
 
 
 # Lookup a package by ID and print its status.
-def lookup_package(package_id, time):
+def lookup_package(package_id, lookup_time):
     # Check if the package exists.
-    pkg = package_table.get_package(package_id)
+    package = package_table.get_package(package_id)
 
-    if pkg is not None:
+    if package is not None:
 
-        deadline = pkg.deadline.strftime('%I:%M %p') if pkg.deadline != 'EOD' else str(
-            pkg.deadline)
+        deadline = package.deadline.strftime('%I:%M %p') if package.deadline != 'EOD' else str(
+            package.deadline)
 
         # Display package details.
         print(f"\nPackage: {package_id}\n"
-              f"{pkg.address.split(',')[0].strip()}\n{pkg.city} {pkg.state}, {pkg.zip_code}\n"
-              f"Deadline: {deadline}\nWeight: {pkg.weight}KG")
+              f"{package.address.split(',')[0].strip()}\n{package.city} {package.state}, {package.zip_code}\n"
+              f"Deadline: {deadline}\nWeight: {package.weight}KG")
 
         # Check the package status.
-        if time < pkg.loaded_time:
+        if lookup_time < package.loaded_time:
             print(f"Package {package_id} is currently at the hub, expected to arrive by {deadline}")
-        elif pkg.loaded_time <= time < pkg.delivery_time:
-            print(f"Package {package_id} is currently in transit on {pkg.truck},"
-                  f" expected to arrive at {pkg.delivery_time.strftime('%I:%M %p')}")
+        elif package.loaded_time <= lookup_time < package.delivery_time:
+            print(f"Package {package_id} is currently in transit on {package.truck},"
+                  f" expected to arrive at {package.delivery_time.strftime('%I:%M %p')}")
         else:
-            print(f"Package {package_id} was delivered by {pkg.truck} at {pkg.delivery_time.strftime('%I:%M %p')}")
+            print(
+                f"Package {package_id} was delivered by {package.truck} at {package.delivery_time.strftime('%I:%M %p')}")
 
     else:
         print("\nPackage not found. Please try another package ID.")
@@ -531,15 +532,15 @@ def main_menu():
 
 
 # Get location data.
-location_data = get_location_data()
+location_data = parse_location_data()
 extracted_distances = location_data[0]  # Extract the distances dictionary
 extracted_locations = location_data[1]  # Extract the locations list
 
 # Run algorithm to deliver packages.
-nearest_neighbor_algorithm(trucks, extracted_distances)
+nearest_neighbor_algorithm(all_trucks, extracted_distances)
 
 # Run algorithm to deliver packages.
-nearest_neighbor_algorithm(trucks, extracted_distances)
+nearest_neighbor_algorithm(all_trucks, extracted_distances)
 
 # Output total miles driven
 get_miles_for_all_trucks()
