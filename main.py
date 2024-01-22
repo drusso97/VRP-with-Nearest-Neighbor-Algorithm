@@ -446,7 +446,7 @@ def print_packages_on_trucks():
             if end_time <= pkg.loaded_time:
                 print(f"Package {pkg.package_id} is currently at the hub, due by {pkg.deadline.strftime('%I:%M %p') if pkg.deadline != 'EOD' else pkg.deadline}")
             # The package is still in transit.
-            elif end_time >= pkg.loaded_time and pkg.delivery_time >= end_time:
+            elif pkg.loaded_time <= end_time <= pkg.delivery_time:
                 print(f"Package {pkg.package_id} is currently on {pkg.truck}"
                       f", due by {pkg.formatted_delivered_time()}")
             # The package was delivered.
