@@ -428,7 +428,7 @@ def lookup_package(package_id, time):
         print("\nPackage not found. Please try another package ID.")
 
 
-# Prints all packages in transit between two user-selected times.
+# Prints status of all packages between two user-selected times.
 def print_packages_on_trucks():
     print("Please choose from the following options:")
     print("(1) - Print status of all packages between 8:35 a.m. and 9:25 a.m")
