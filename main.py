@@ -442,27 +442,34 @@ def print_packages_on_trucks():
     # that were in transit during the interval specified.
     def print_packages(start_time, end_time):
         for pkg in package_table.get_packages_in_state("delivered"):
-            if pkg.loaded_time <= start_time <= pkg.delivery_time <= end_time:
+            # The package has not been loaded yet.
+            if start_time <= pkg.loaded_time:
+                print(f"Package {pkg.package_id} is currently at the hub, due by {pkg.deadline.strftime('%I:%M %p') if pkg.deadline != 'EOD' else pkg.deadline}")
+            # The package is still in transit.
+            elif pkg.loaded_time <= start_time <= pkg.delivery_time and end_time <= pkg.delivery_time:
                 print(f"Package {pkg.package_id} is currently on {pkg.truck}"
-                      f", due at {pkg.formatted_delivered_time()}")
+                      f", due by {pkg.formatted_delivered_time()}")
+            # The package was delivered.
+            else:
+                print(f"Package {pkg.package_id} was delivered by {pkg.truck} at {pkg.formatted_delivered_time()}")
 
     if user_input == 1:
         start_time = datetime.combine(today, time(8, 35))
         end_time = datetime.combine(today, time(9, 25))
 
-        print("\nPackages in transit between 8:35 a.m. and 9:25 a.m\n")
+        print("\nStatus of all packages between 8:35 a.m. and 9:25 a.m\n")
         print_packages(start_time, end_time)
     elif user_input == 2:
         start_time = datetime.combine(today, time(9, 35))
         end_time = datetime.combine(today, time(10, 25))
 
-        print("\nPackages in transit between 9:35 a.m. and 10:25 a.m\n")
+        print("\nStatus of all packages 9:35 a.m. and 10:25 a.m\n")
         print_packages(start_time, end_time)
     elif user_input == 3:
         start_time = datetime.combine(today, time(12, 3))
         end_time = datetime.combine(today, time(13, 12))
 
-        print("\nPackages in transit between 12:03 p.m. and 1:12 p.m\n")
+        print("\nStatus of all packages 12:03 p.m. and 1:12 p.m\n")
         print_packages(start_time, end_time)
     elif user_input == 4:
         main_menu()
