@@ -1,4 +1,4 @@
-    This program uses the nearest neighbor algorithm to find an efficient solution to the Vehicle Routing Problem.
+This program uses the nearest neighbor algorithm to find an efficient solution to the Vehicle Routing Problem.
 It uses various functions and classes to store and manipulate package and vehicle data. There are several checks in place
 to ensure that various delivery restrictions are met and that the total miles traveled does not exceed 140.
 
