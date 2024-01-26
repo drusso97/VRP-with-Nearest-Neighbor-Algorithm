@@ -1,11 +1,3 @@
-# Devon Russo, WGU - Computer Science, Student ID: 010828078
-# C950 PA Task 2
-# Created on 12/30/2023
-
-# This program uses the nearest neighbor algorithm to design an efficient route to deliver packages.
-# The packages will be stored in a hash table with their ID being used as the key.
-# The package class stores all relevant information about each package.
-
 # Import the required libraries for the program to run. Built-in python libraries are allowed for the project.
 import csv
 from datetime import datetime, time, timedelta
@@ -161,13 +153,13 @@ class LinkedList:
 # Initialize Package List
 package_table = PackageHashTable()
 
-# WGUPS has three trucks available
+# There are three trucks available
 truck1 = Truck()
 
 # Truck 2 does not depart until 9:05am since some of the packages are delayed.
 truck2 = Truck(departure_time=datetime.combine(today, time(9, 5)))
 
-# WGUPS has three trucks available, but we will not use the third since there are only two drivers available.
+# There are three trucks available, but we will not use the third since there are only two drivers available.
 truck3 = Truck()
 
 all_trucks = [truck1, truck2, truck3]
@@ -175,7 +167,7 @@ all_trucks = [truck1, truck2, truck3]
 
 # Define function to parse csv file and create package objects.
 def parse_package_data():
-    with open("files/WGUPS_package_file.csv", "r", encoding='utf-8-sig') as package_file:
+    with open("files/package_file.csv", "r", encoding='utf-8-sig') as package_file:
         reader_variable = csv.reader(package_file, delimiter=",")
         for row in reader_variable:
             package_id = int(row[0])
@@ -480,7 +472,7 @@ def print_packages_on_trucks():
 
 # Allows the user to interact with the program.
 def main_menu():
-    print("\nWelcome to WGUPS. Please choose from the following options:")
+    print("\nWelcome. Please choose from the following options:")
     print("(1) - Lookup package by ID")
     print("(2) - Print status of all of today's packages by time")
     print("(3) - Print mileage driven by all trucks")
