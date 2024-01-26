@@ -1,4 +1,4 @@
-# Import the required libraries for the program to run. Built-in python libraries are allowed for the project.
+# Import the required libraries for the program to run. Only built-in python libraries are allowed for the project.
 import csv
 from datetime import datetime, time, timedelta
 
